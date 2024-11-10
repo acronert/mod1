@@ -6,6 +6,7 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <cmath>
 #include <unistd.h> 
 
 #define DELTA_TIME 1.0f
@@ -16,31 +17,33 @@
 class WaterSurface
 {
 	private:
-		size_t	_sizeX;
-		size_t	_sizeY;
-		float	_cellSize;
-		float	_waveSpeed;
-		float	_k;
+		int		_sizeX;
+		int		_sizeY;
+		float	_cellSize;	// in meters
+		float	_waveSpeed;	// in meters/seconds
+		float	_k;			// propagation constant
+		float	_dt;		// delta time
+		float	_halfLife;
 
-		// Cell**	_grid;
-		float** _heightMap;
-		float** _previousHeightMap;
-		float** _velocityMap;
+		std::vector<Cell> _cell;
 
 	public:
-		WaterSurface(size_t sizeX, size_t sizeY, int spacing);
+		WaterSurface(int sizeX, int sizeY);
 		~WaterSurface();
 		WaterSurface(const WaterSurface& other);
 		WaterSurface& operator=(const WaterSurface& other);
 
-		void	computeWaterMovement();
-		// float	calculateCellAcceleration(size_t x, size_t y);
-		void	setCellHeight(size_t x, size_t y, int height);
-		void	borrowWater(size_t x, size_t y);
+		int		index(int x, int y);
+		void	setCellHeight(int x, int y, int h);
+
+		float	acceleration(Cell& target, int neighborX, int neighborY);
+
+		void	update();
 
 		void	displayHeight();
-		float	getHeightSum();
+		float	getSumHeight();
 
+		std::vector<Cell>	getCells();
 };
 
 #endif

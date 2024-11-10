@@ -2,11 +2,12 @@
 # define CELL_STRUCT_HPP
 
 struct Cell {
-	int		height;
-	int		next_height;
-	float	velocity;
+	float	h;
+	float	v;
+	float	a;
 
-	Cell(int h = 0, float v = 0) : height(h), velocity(v) {}
+	Cell(int height = 0, float velocity = 0, float acceleration = 0)
+		: h(height), v(velocity), a(acceleration) {}
 };
 
 #endif
