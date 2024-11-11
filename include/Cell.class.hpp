@@ -8,13 +8,14 @@ class Cell
 {
 	private:
 		// Heights
-		float	_h;
-		float*	_hN;	// waterHeight N (pointer to neighbor cell N)
-		float*	_hE;	// waterHeight E (pointer to neighbor cell E)
-		float*	_hS;	// waterHeight S (pointer to neighbor cell S)
-		float*	_hW;	// waterHeight W (pointer to neighbor cell W)
+		float	_w;
+		float*	_wN;	// waterHeight N (pointer to neighbor cell N)
+		float*	_wE;	// waterHeight E (pointer to neighbor cell E)
+		float*	_wS;	// waterHeight S (pointer to neighbor cell S)
+		float*	_wW;	// waterHeight W (pointer to neighbor cell W)
 
 		// Velocities
+		float	_totalVelocity; // sum of the velocities
 		float	_vN;	// velocity N
 		float	_vE;	// velocity W
 		float*	_vS;	// velocity S (pointer to neighbor cell vN)
@@ -24,16 +25,19 @@ class Cell
 
 	public:
 		Cell();
-		Cell(float h, Cell* Ncell, Cell* Ecell, Cell* Scell, Cell* Wcell);
+		Cell(float w, Cell* Ncell, Cell* Ecell, Cell* Scell, Cell* Wcell);
 		~Cell();
 		Cell(const Cell& other);
 		Cell& operator=(const Cell& other);
 
 		void	updateVelocity();
+		void	calculateTotalVelocity();
+		void	resolveUnderflow();
 		void	updateHeight();
 
 		float	getHeight();
-		void	setHeight(float h);
+		void	setHeight(float w);
+		void	addToTotalVelocity(float add);
 
 };
 

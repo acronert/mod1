@@ -29,11 +29,16 @@ class WaterSurface
 		WaterSurface(const WaterSurface& other);
 		WaterSurface& operator=(const WaterSurface& other);
 
+		void	checkUnderflow(int x, int y);
+
+
 		int		index(int x, int y);
 		void	displayHeight();
+		void	displayASCII();
 
 		void	setHeight(int x, int y, float h);
 		void	update();
+		float	getTotalHeight();
 
 
 };

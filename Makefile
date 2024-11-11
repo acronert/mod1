@@ -6,8 +6,7 @@ GLFLAGS		=	-lglfw -lGL -lGLU -lX11 -lm -pthread
 
 SRCS		=	./src/main.cpp		\
 				./src/WaterSurface.class.cpp \
-				./src/Cell.class.cpp \
-				./src/Renderer2D.class.cpp \
+				./src/Cell.class.cpp
 
 HEADERS		=	./include
 

@@ -1,19 +1,29 @@
 #include "WaterSurface.class.hpp"
-#include "Renderer2D.class.hpp"
 
-#define WIDTH 5
-#define HEIGHT 5
-#define ITER 1000000
+#define WIDTH 10
+#define HEIGHT 10
+#define ITER 10
 
 int	main() {
 
 	WaterSurface surface(WIDTH, HEIGHT);
 
-	surface.setHeight(2, 2, 1.0f);
+	surface.setHeight(2, 2, 10.0f);
 	surface.displayHeight();
-	for (int i = 0; i < ITER; i++) {
+
+	// Iteration
+	// for (int i = 0; i < ITER; i++) {
+	// 	surface.update();
+	// 	surface.displayHeight();
+	// }
+
+	// Infinite iteration
+	while (1) {
 		surface.update();
-		surface.displayHeight();
+		// surface.displayHeight();
+		surface.displayASCII();
+		usleep(250000); // 0.25sec
+		system("clear");
 	}
 
 	// for (int x = 0; x < WIDTH; x++) {

@@ -11,7 +11,7 @@ WaterSurface::WaterSurface(int sizeX, int sizeY)
 			Cell* Ecell = (x < _sizeX - 1) ? &_cell[index(x + 1, y)] : nullptr;
 			Cell* Scell = (y > 0) ? &_cell[index(x, y - 1)] : nullptr;
 			Cell* Wcell = (x > 0) ? &_cell[index(x - 1, y)] : nullptr;
-			_cell[index(x, y)] = Cell(0.0f, Ncell, Ecell, Scell, Wcell);
+			_cell[index(x, y)] = Cell(1.0f, Ncell, Ecell, Scell, Wcell);
 		}
 	}
 }
@@ -40,21 +40,72 @@ void	WaterSurface::update() {
 		c.updateVelocity();
 		c.updateHeight();
 	});
-	// std::for_each(_cell.begin(), _cell.end(), [](Cell& c) {
-	// 	c.updateHeight();
-	// });
+
+	//check underflow
+	for (int x = 0; x < _sizeX; x++) {
+		for (int y = 0; y < _sizeX; y++) {
+			if (_cell[index(x, y)].getHeight() < 0)
+				checkUnderflow(x, y);
+		}
+	}
+}
+
+void	WaterSurface::checkUnderflow(int x, int y) {
+	if (x < 0 || y < 0 || x >= _sizeX || y >= _sizeY || _cell[index(x, y)].getHeight() >= 0)
+		return;
+
+	_cell[index(x,y)].resolveUnderflow();
+
+	// recursive call
+	checkUnderflow(x-1, y);
+	checkUnderflow(x+1, y);
+	checkUnderflow(x, y-1);
+	checkUnderflow(x, y+1);
 }
 
 void	WaterSurface::displayHeight() {
 	for (int y = _sizeY - 1; y >= 0; y--) {
 		for (int x = 0; x < _sizeX; x++) {
 			std::cout << std::fixed << std::setw(6) << std::setprecision(3) << _cell[index(x, y)].getHeight() << " ";
+			std::cout << std::defaultfloat;
+			// std::cout << _cell[index(x, y)].getHeight() << " ";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << "TotalHeight = " << getTotalHeight() << std::endl;
+	std::cout << std::endl;
+}
+
+void	WaterSurface::displayASCII() {
+	float	min = 0.0f;
+	float	max = 2.0f;
+	int		color;
+	float	delta = (max - min) / 24.0f;
+
+	for (int y = _sizeY - 1; y >= 0; y--) {
+		for (int x = 0; x < _sizeX; x++) {
+			color = floor(_cell[index(x, y)].getHeight() / delta);
+			if (color < 0)
+				color = -36;
+			else if (color > 23)
+				color = 23;
+			std::cout << "\033[48;5;" << color + 232 << "m" << "  " << "\033[0m";
 		}
 		std::cout << std::endl;
 	}
 	std::cout << std::endl;
 }
 
+float	WaterSurface::getTotalHeight() {
+	float sum = 0;
+
+	for (int x = 0; x < _sizeX; x++) {
+		for (int y = 0; y < _sizeY; y++) {
+			sum += _cell[index(x, y)].getHeight();
+		}
+	}
+	return sum;
+}
 
 void	WaterSurface::setHeight(int x, int y, float h) {
 	if (x < 0 || x >= _sizeX || y < 0 || y >= _sizeY)
