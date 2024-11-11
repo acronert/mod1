@@ -1,32 +1,32 @@
 #include "WaterSurface.class.hpp"
 
 WaterSurface::WaterSurface(int sizeX, int sizeY)
-	: _sizeX(sizeX), _sizeY(sizeY), _cellSize(0.001f),
-	_waveSpeed(2.0f), _dt(1.0f / 10000.0f), _halfLife(0.07f)
+	: _sizeX(sizeX), _sizeY(sizeY)
 {
-	// _waveSpeed = std::min(WAVE_SPEED, static_cast<float>(0.5 * _cellSize / DELTA_TIME));
-	_k = (_waveSpeed * _waveSpeed) / (_cellSize * _cellSize);
 	_cell.resize(_sizeX * _sizeY);
 
+	for (int x = 0; x < _sizeX; x++) {
+		for (int y = 0; y < _sizeY; y++) {
+			Cell* Ncell = (y < _sizeY - 1) ? &_cell[index(x, y + 1)] : nullptr;
+			Cell* Ecell = (x < _sizeX - 1) ? &_cell[index(x + 1, y)] : nullptr;
+			Cell* Scell = (y > 0) ? &_cell[index(x, y - 1)] : nullptr;
+			Cell* Wcell = (x > 0) ? &_cell[index(x - 1, y)] : nullptr;
+			_cell[index(x, y)] = Cell(0.0f, Ncell, Ecell, Scell, Wcell);
+		}
+	}
 }
 
 WaterSurface::~WaterSurface() {}
 
 WaterSurface::WaterSurface(const WaterSurface& other)
-	: _sizeX(other._sizeX), _sizeY(other._sizeY), _cellSize(other._cellSize),
-	_waveSpeed(other._waveSpeed), _k(other._k), _dt(other._dt), _halfLife(other._halfLife), _cell(other._cell)
+	: _sizeX(other._sizeX), _sizeY(other._sizeY), _cell(other._cell)
 {}
 
 WaterSurface& WaterSurface::operator=(const WaterSurface& other) {
 	if (this != &other) {
 		_sizeX = other._sizeX;
 		_sizeY = other._sizeY;
-		_cellSize = other._cellSize;
-		_waveSpeed = other._waveSpeed;
-		_k = other._k;
-		_halfLife = other._halfLife;
-		_dt = other._dt;
-		_cell = other._cell;
+
 	}
 	return *this;
 }
@@ -35,67 +35,29 @@ int WaterSurface::index(int x, int y) {
 	return (x + y * _sizeX);
 }
 
-void	WaterSurface::setCellHeight(int x, int y, int h) {
-	if (x < 0 || x >= _sizeX || y < 0 || y >= _sizeY)
-		return ;
-	_cell[index(x, y)].h = h;
-}
-
-
-float	WaterSurface::acceleration(Cell& target, int neighborX, int neighborY) {
-	if (neighborX < 0 || neighborX >= _sizeX || neighborY < 0 || neighborY >= _sizeY)
-		return 0;
-	Cell& neighbor = _cell[index(neighborX, neighborY)];
-	return _k * (neighbor.h - target.h);
-}
-
 void	WaterSurface::update() {
-	float damp = pow(0.3, _dt / _halfLife); // damp 0 for more smoothing
-
-	// get acceleration
-	for (int x = 0; x < _sizeX; x++) {
-		for (int y = 0; y < _sizeY; y++) {
-			Cell& target = _cell[index(x, y)];
-			target.a = (
-				acceleration(target, x+1, y) +
-				acceleration(target, x-1, y) +
-				acceleration(target, x, y+1) +
-				acceleration(target, x, y-1)
-			);
-		}
-	}
-
-	// set heigh and velocity
-	for (int x = 0; x < _sizeX; x++) {
-		for (int y = 0; y < _sizeY; y++) {
-			Cell& target = _cell[index(x, y)];
-			target.v = (damp * target.v) + (_dt * target.a);
-			target.h += (_dt * target.v);
-		}
-	}
+	std::for_each(_cell.begin(), _cell.end(), [](Cell& c) {
+		c.updateVelocity();
+		c.updateHeight();
+	});
+	// std::for_each(_cell.begin(), _cell.end(), [](Cell& c) {
+	// 	c.updateHeight();
+	// });
 }
 
 void	WaterSurface::displayHeight() {
-	for (int x = 0; x < _sizeX; x++) {
-		for (int y = 0; y < _sizeY; y++) {
-			float height = _cell[index(x, y)].h;
-			std::cout << height << " ";
+	for (int y = _sizeY - 1; y >= 0; y--) {
+		for (int x = 0; x < _sizeX; x++) {
+			std::cout << std::fixed << std::setw(6) << std::setprecision(3) << _cell[index(x, y)].getHeight() << " ";
 		}
 		std::cout << std::endl;
 	}
 	std::cout << std::endl;
 }
 
-float	WaterSurface::getSumHeight() {
-	float sum = 0;
-	for (int x = 0; x < _sizeX; x++) {
-		for (int y = 0; y < _sizeY; y++) {
-			sum += _cell[index(x, y)].h;
-		}
-	}
-	return sum;
-}
 
-std::vector<Cell>	WaterSurface::getCells(){
-	return _cell;
+void	WaterSurface::setHeight(int x, int y, float h) {
+	if (x < 0 || x >= _sizeX || y < 0 || y >= _sizeY)
+		return;
+	_cell[index(x, y)].setHeight(h);
 }

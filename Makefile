@@ -1,12 +1,13 @@
 
 NAME		=	mod1
 CXX			=	c++
-FLAGS		=	-Wall -Wextra -Werror -std=c++98 -g3
+FLAGS		=	-Wall -Wextra -Werror -g3
 GLFLAGS		=	-lglfw -lGL -lGLU -lX11 -lm -pthread
 
 SRCS		=	./src/main.cpp		\
 				./src/WaterSurface.class.cpp \
-				./src/Renderer2D.class.cpp
+				./src/Cell.class.cpp \
+				./src/Renderer2D.class.cpp \
 
 HEADERS		=	./include
 
