@@ -2,80 +2,81 @@
 
 Cell::Cell() : _w(0), _totalVelocity(0), _vN(0), _vE(0), _vS(nullptr), _vW(nullptr) {}
 
-Cell::Cell(float w, Cell* Ncell, Cell* Ecell, Cell* Scell, Cell* Wcell)
+Cell::Cell(float w, float g, Cell* Ncell, Cell* Ecell, Cell* Scell, Cell* Wcell)
 	: _w(w), _wN(nullptr), _wE(nullptr), _wS(nullptr), _wW(nullptr),
+	_g(g), _gN(nullptr), _gE(nullptr), _gS(nullptr), _gW(nullptr),
 	_totalVelocity(0.0f) ,_vN(0.0f), _vE(0.0f), _vS(nullptr), _vW(nullptr)
 {
-	if (Ncell != nullptr)
+	if (Ncell != nullptr) {
 		_wN = &(Ncell->_w);
+		_gN = &(Ncell->_g);
+	}
 
-	if (Ecell != nullptr)
+	if (Ecell != nullptr){
 		_wE = &(Ecell->_w);
+		_gE = &(Ecell->_g);
+	}
 
 	if (Scell != nullptr){
-		_vS = &(Scell->_vN);
 		_wS = &(Scell->_w);
+		_gS = &(Scell->_g);
+
+		_vS = &(Scell->_vN);
 	}
 
 	if (Wcell != nullptr) {
-		_vW = &(Wcell->_vE);
 		_wW = &(Wcell->_w);
+		_gW = &(Wcell->_g);
+		
+		_vW = &(Wcell->_vE);
 	}
 }
 
 Cell::~Cell() {}
 
 Cell::Cell(const Cell& other)
+	: _w(other._w),	_g(other._g), _totalVelocity(other._totalVelocity),
+	_vN(other._vN), _vE(other._vE)
 {
-	_w = other._w;
-	_vN = other._vN;
-	_vE = other._vE;
-	_vS = other._vS;
-	_vW = other._vW;
+	_wN = other._wN != nullptr ? other._wN : nullptr;
+	_wE = other._wE != nullptr ? other._wE : nullptr;
+	_wS = other._wS != nullptr ? other._wS : nullptr;
+	_wW = other._wW != nullptr ? other._wW : nullptr;
 
+	_gN = other._gN != nullptr ? other._gN : nullptr;
+	_gE = other._gE != nullptr ? other._gE : nullptr;
+	_gS = other._gS != nullptr ? other._gS : nullptr;
+	_gW = other._gW != nullptr ? other._gW : nullptr;
+
+	_vS = other._vS != nullptr ? other._vS : nullptr;
+	_vW = other._vW != nullptr ? other._vW : nullptr;
 }
 
 Cell& Cell::operator=(const Cell& other) {
 	if (this != &other) {
 		_w = other._w;
+		_g = other._g;
+		_totalVelocity = other._totalVelocity;
 		_vN = other._vN;
 		_vE = other._vE;
-		if (other._vS != nullptr) {
-			_vS = other._vS;
-		} else {
-			_vS = nullptr;
-		}
-		if (other._vW != nullptr) {
-			_vW = other._vW;
-		} else {
-			_vW = nullptr;
-		}
-		if (other._wN != nullptr) {
-			_wN = other._wN;
-		} else {
-			_wN = nullptr;
-		}
-		if (other._wE != nullptr) {
-			_wE = other._wE;
-		} else {
-			_wE = nullptr;
-		}
-		if (other._wS != nullptr) {
-			_wS = other._wS;
-		} else {
-			_wS = nullptr;
-		}
-		if (other._wW != nullptr) {
-			_wW = other._wW;
-		} else {
-			_wW = nullptr;
-		}
+
+		_wN = other._wN != nullptr ? other._wN : nullptr;
+		_wE = other._wE != nullptr ? other._wE : nullptr;
+		_wS = other._wS != nullptr ? other._wS : nullptr;
+		_wW = other._wW != nullptr ? other._wW : nullptr;
+
+		_gN = other._gN != nullptr ? other._gN : nullptr;
+		_gE = other._gE != nullptr ? other._gE : nullptr;
+		_gS = other._gS != nullptr ? other._gS : nullptr;
+		_gW = other._gW != nullptr ? other._gW : nullptr;
+
+		_vS = other._vS != nullptr ? other._vS : nullptr;
+		_vW = other._vW != nullptr ? other._vW : nullptr;
 	}
 	return *this;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
 
 // Acceleration = PROPAGATION * (neighbor.h - target.h)
 // Velocity = (DAMPENING * target.v) + (DELTA_TIME * target.a)
@@ -92,33 +93,15 @@ void	Cell::updateVelocity() {
 		_vE = 0;
 	
 	calculateTotalVelocity();
-
 }
 
-// Height = DELTA_TIME * (vN + vE + vS + vW)
+// WaterLevel = DELTA_TIME * (vN + vE + vS + vW)
 	// _vS and _vW are inverted to get the right direction
 void	Cell::calculateTotalVelocity() {
 	_totalVelocity = _vN + _vE;
 	_totalVelocity += _vS ? -*_vS : 0;
 	_totalVelocity += _vW ? -*_vW : 0;
 }
-
-// void	Cell::resolveUnderflow() {
-// 	if (_w >= 0)
-// 		return;
-
-// 	float	potential_credit = 0; // quantity of water higher than target that holds the neighbors
-
-// 	if (_wN && *_wN > 0)
-// 		potential_credit += *_wN;
-// 	if (_wE && *_wE > 0)
-// 		potential_credit += *_wE;
-// 	if (_wS && *_wS > 0)
-// 		potential_credit += *_wS;
-// 	if (_wW && *_wW > 0)
-// 		potential_credit += *_wW;
-	
-// }
 
 void	Cell::resolveUnderflow() {
 	if (_w >= 0)
@@ -154,18 +137,15 @@ void	Cell::resolveUnderflow() {
 	_w = 0;
 }
 
-void	Cell::updateHeight() {
-	_w += DELTA_TIME * _totalVelocity;
-}
+void	Cell::updateWaterLevel() { _w += DELTA_TIME * _totalVelocity; }
 
-float	Cell::getHeight() {
-	return _w;
-}
+float	Cell::getWaterLevel() { return _w; }
 
-void	Cell::setHeight(float w){
-	_w = w;
-}
+float	Cell::getGroundLevel() { return _g; }
 
-void	Cell::addToTotalVelocity(float add){
-	_totalVelocity += add;
-}
+void	Cell::setWaterLevel(float w){ _w = w; }
+
+void	Cell::setGroundLevel(float g){ _g = g; }
+
+
+

@@ -31,14 +31,15 @@ class WaterSurface
 
 		void	checkUnderflow(int x, int y);
 
-
 		int		index(int x, int y);
-		void	displayHeight();
+		void	displayWaterLevel();
 		void	displayASCII();
 
-		void	setHeight(int x, int y, float h);
+		void	setGroundLevel(int x, int y, float h);
+		void	setWaterLevel(int x, int y, float h);
+		float	getTotalWaterLevel();
+
 		void	update();
-		float	getTotalHeight();
 
 
 };

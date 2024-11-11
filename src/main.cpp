@@ -8,46 +8,22 @@ int	main() {
 
 	WaterSurface surface(WIDTH, HEIGHT);
 
-	surface.setHeight(2, 2, 10.0f);
-	surface.displayHeight();
+	surface.setWaterLevel(2, 2, 10.0f);
+	surface.displayWaterLevel();
 
 	// Iteration
-	// for (int i = 0; i < ITER; i++) {
-	// 	surface.update();
-	// 	surface.displayHeight();
-	// }
-
-	// Infinite iteration
-	while (1) {
+	for (int i = 0; i < ITER; i++) {
 		surface.update();
-		// surface.displayHeight();
-		surface.displayASCII();
-		usleep(250000); // 0.25sec
-		system("clear");
+		surface.displayWaterLevel();
 	}
 
-	// for (int x = 0; x < WIDTH; x++) {
-	// 	for (int y = 0; y < HEIGHT; y++) {
-	// 		surface.setCellHeight(x, y, 1);
-	// 	}
-	// }
-	// surface.setCellHeight(10, 7, 2);
-
-	// surface.displayHeight();
-
-
-	// Renderer2D renderer(WIDTH, HEIGHT);
-
-
+	// Infinite iteration
 	// while (1) {
 	// 	surface.update();
-	// 	renderer.update(surface.getCells());
-	// 	std::cout << surface.getSumHeight() << std::endl;
-	// 	// surface.displayHeight();
-	// 	renderer.displayASCII();
+	// 	// surface.displayWaterLevel();
+	// 	surface.displayASCII();
 	// 	usleep(250000); // 0.25sec
 	// 	system("clear");
 	// }
-
 
 }
