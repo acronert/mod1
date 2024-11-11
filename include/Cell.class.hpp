@@ -35,6 +35,7 @@ class Cell
 		Cell(const Cell& other);
 		Cell& operator=(const Cell& other);
 
+		float	acceleration(float other_w, float other_g);
 		void	updateVelocity();
 		void	calculateTotalVelocity();
 		void	updateWaterLevel();
@@ -47,7 +48,10 @@ class Cell
 		void	setWaterLevel(float w);
 		void	setGroundLevel(float g);
 
-
+		float	getVelocityN();
+		float	getVelocityE();
+		float	getVelocityS();
+		float	getVelocityW();
 };
 
 #endif

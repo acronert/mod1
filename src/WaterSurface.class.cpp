@@ -41,7 +41,7 @@ void	WaterSurface::update() {
 		c.updateWaterLevel();
 	});
 
-	//check underflow
+	// check underflow
 	for (int x = 0; x < _sizeX; x++) {
 		for (int y = 0; y < _sizeX; y++) {
 			if (_cell[index(x, y)].getWaterLevel() < 0)
@@ -54,6 +54,8 @@ void	WaterSurface::checkUnderflow(int x, int y) {
 	if (x < 0 || y < 0 || x >= _sizeX || y >= _sizeY || _cell[index(x, y)].getWaterLevel() >= 0)
 		return;
 
+	std::cout << "Underflow in [" << x << "][" << y << "]" << std::endl;
+
 	_cell[index(x,y)].resolveUnderflow();
 
 	// recursive call
@@ -64,15 +66,27 @@ void	WaterSurface::checkUnderflow(int x, int y) {
 }
 
 void	WaterSurface::displayWaterLevel() {
+	std::cout << "===== Water Level =====" << std::endl;
 	for (int y = _sizeY - 1; y >= 0; y--) {
 		for (int x = 0; x < _sizeX; x++) {
 			std::cout << std::fixed << std::setw(6) << std::setprecision(3) << _cell[index(x, y)].getWaterLevel() << " ";
 			std::cout << std::defaultfloat;
-			// std::cout << _cell[index(x, y)].getWaterLevel() << " ";
 		}
 		std::cout << std::endl;
 	}
 	std::cout << "TotalWaterLevel = " << getTotalWaterLevel() << std::endl;
+	std::cout << std::endl;
+}
+
+void	WaterSurface::displayGroundLevel() {
+	std::cout << "===== Ground Level =====" << std::endl;
+	for (int y = _sizeY - 1; y >= 0; y--) {
+		for (int x = 0; x < _sizeX; x++) {
+			std::cout << std::fixed << std::setw(6) << std::setprecision(3) << _cell[index(x, y)].getGroundLevel() << " ";
+			std::cout << std::defaultfloat;
+		}
+		std::cout << std::endl;
+	}
 	std::cout << std::endl;
 }
 
@@ -120,4 +134,18 @@ float	WaterSurface::getTotalWaterLevel() {
 		}
 	}
 	return sum;
+}
+
+
+void	WaterSurface::displayCellInfo(int x, int y) {
+	Cell& cell = _cell[index(x, y)];
+
+	std::cout << "Cell[" << x << "][" << y << "] Info = " << std::endl;
+	std::cout << "      w = " << cell.getWaterLevel() << std::endl;
+	std::cout << "      g = " << cell.getGroundLevel() << std::endl;
+	std::cout << "      vN = " << cell.getVelocityN() << std::endl;
+	std::cout << "      vE = " << cell.getVelocityE() << std::endl;
+	std::cout << "      vS = " << cell.getVelocityS() << std::endl;
+	std::cout << "      vW = " << cell.getVelocityW() << std::endl;
+
 }

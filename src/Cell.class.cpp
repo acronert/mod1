@@ -20,14 +20,12 @@ Cell::Cell(float w, float g, Cell* Ncell, Cell* Ecell, Cell* Scell, Cell* Wcell)
 	if (Scell != nullptr){
 		_wS = &(Scell->_w);
 		_gS = &(Scell->_g);
-
 		_vS = &(Scell->_vN);
 	}
 
 	if (Wcell != nullptr) {
 		_wW = &(Wcell->_w);
 		_gW = &(Wcell->_g);
-		
 		_vW = &(Wcell->_vE);
 	}
 }
@@ -79,16 +77,31 @@ Cell& Cell::operator=(const Cell& other) {
 ////////////////////////////////////////////////////////////////////////////////
 
 // Acceleration = PROPAGATION * (neighbor.h - target.h)
+	// Compare tallest and max(tallest.g, smallest.g + smallest.w)
+float	Cell::acceleration(float other_w, float other_g) {
+	float other_height;
+	float height;
+
+	if (other_w + other_g > _w + _g) {
+		other_height = other_w + other_g;
+		height = std::max(other_g, _w + _g);
+	} else {
+		height = _w + _g;
+		other_height = std::max(_g, other_w + other_g);
+	}
+
+	return DELTA_TIME * PROPAGATION * (other_height - height);
+}
+
 // Velocity = (DAMPENING * target.v) + (DELTA_TIME * target.a)
 void	Cell::updateVelocity() {
-
 	if (_wN != nullptr)
-		_vN = (DAMPENING * _vN) + (DELTA_TIME * PROPAGATION * (*_wN - _w));
+		_vN = (DAMPENING * _vN) + acceleration(*_wN, *_gN);
 	else
 		_vN = 0;
 
 	if (_wE != nullptr)
-		_vE = (DAMPENING * _vE) + (DELTA_TIME * PROPAGATION * (*_wE - _w));
+		_vE = (DAMPENING * _vE) + acceleration(*_wE, *_gE);
 	else
 		_vE = 0;
 	
@@ -107,14 +120,14 @@ void	Cell::resolveUnderflow() {
 	if (_w >= 0)
 		return;
 
-	// std::cout << "UNDERFLOW" << std::endl;
 	float	v_underflow = (_w + (DELTA_TIME * _totalVelocity)) / DELTA_TIME;
-
 	int		positive_neighbors = 0;
+
 	positive_neighbors += _vN < 0;
 	positive_neighbors += _vE < 0;
 	positive_neighbors += _vS != nullptr ? (-*_vS < 0): 0;
 	positive_neighbors += _vW != nullptr ? (-*_vW < 0): 0;
+
 
 	if (_vN < 0) {
 		_vN += v_underflow / positive_neighbors;
@@ -133,7 +146,13 @@ void	Cell::resolveUnderflow() {
 		*_wW += _w / positive_neighbors;
 	}
 	
-	_totalVelocity -= v_underflow;
+	// _totalVelocity -= v_underflow;
+	_vN = 0;
+	_vE = 0;
+	if (_vS != nullptr)
+		*_vS = 0;
+	if (_vW != nullptr)
+		*_vW = 0;
 	_w = 0;
 }
 
@@ -146,6 +165,11 @@ float	Cell::getGroundLevel() { return _g; }
 void	Cell::setWaterLevel(float w){ _w = w; }
 
 void	Cell::setGroundLevel(float g){ _g = g; }
+
+float	Cell::getVelocityN() { return _vN; }
+float	Cell::getVelocityE() { return _vE; }
+float	Cell::getVelocityS() { return _vS ? *_vS : 0; }
+float	Cell::getVelocityW() { return _vW ? *_vW : 0; }
 
 
 
