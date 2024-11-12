@@ -1,6 +1,9 @@
 #include "Cell.class.hpp"
 
-Cell::Cell() : _w(0), _totalVelocity(0), _vN(0), _vE(0), _vS(nullptr), _vW(nullptr) {}
+Cell::Cell() : _w(0.0f), _wN(nullptr), _wE(nullptr), _wS(nullptr), _wW(nullptr),
+	_g(0.0f), _gN(nullptr), _gE(nullptr), _gS(nullptr), _gW(nullptr),
+	_totalVelocity(0.0f), _vN(0.0f), _vE(0.0f), _vS(nullptr), _vW(nullptr)
+{}
 
 Cell::Cell(float w, float g, Cell* Ncell, Cell* Ecell, Cell* Scell, Cell* Wcell)
 	: _w(w), _wN(nullptr), _wE(nullptr), _wS(nullptr), _wW(nullptr),

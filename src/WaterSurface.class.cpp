@@ -5,8 +5,8 @@ WaterSurface::WaterSurface(int sizeX, int sizeY)
 {
 	_cell.resize(_sizeX * _sizeY);
 
-	for (int x = 0; x < _sizeX; x++) {
-		for (int y = 0; y < _sizeY; y++) {
+	for (int y = 0; y < _sizeY; y++) {
+		for (int x = 0; x < _sizeX; x++) {
 			Cell* Ncell = (y < _sizeY - 1) ? &_cell[index(x, y + 1)] : nullptr;
 			Cell* Ecell = (x < _sizeX - 1) ? &_cell[index(x + 1, y)] : nullptr;
 			Cell* Scell = (y > 0) ? &_cell[index(x, y - 1)] : nullptr;
@@ -15,6 +15,26 @@ WaterSurface::WaterSurface(int sizeX, int sizeY)
 		}
 	}
 }
+
+// needs _cell to ne a std::vector<Cell*>
+	// + needs a setNeighbor Cell method
+// WaterSurface::WaterSurface(int sizeX, int sizeY)
+// 	: _sizeX(sizeX), _sizeY(sizeY)
+// {
+// 	for (int i = 0; i < _sizeX * _sizeY; i++)
+// 		_cell.push_back(new Cell(1.0f, 0.0f, nullptr, nullptr, nullptr, nullptr));
+
+// 	for (int y = 0; y < _sizeY; y++) {
+// 		for (int x = 0; x < _sizeX; x++) {
+// 			Cell* Ncell = (y < _sizeY - 1) ? &_cell[index(x, y + 1)] : nullptr;
+// 			Cell* Ecell = (x < _sizeX - 1) ? &_cell[index(x + 1, y)] : nullptr;
+// 			Cell* Scell = (y > 0) ? &_cell[index(x, y - 1)] : nullptr;
+// 			Cell* Wcell = (x > 0) ? &_cell[index(x - 1, y)] : nullptr;
+
+// 			_cell[index(x, y)]->setNeighbors(Ncell, Ecell, Scell, Wcell);
+// 		}
+// 	}
+// }
 
 WaterSurface::~WaterSurface() {}
 
@@ -54,7 +74,7 @@ void	WaterSurface::checkUnderflow(int x, int y) {
 	if (x < 0 || y < 0 || x >= _sizeX || y >= _sizeY || _cell[index(x, y)].getWaterLevel() >= 0)
 		return;
 
-	std::cout << "Underflow in [" << x << "][" << y << "]" << std::endl;
+	// std::cout << "Underflow in [" << x << "][" << y << "]" << std::endl;
 
 	_cell[index(x,y)].resolveUnderflow();
 
