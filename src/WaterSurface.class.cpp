@@ -85,6 +85,13 @@ float	WaterSurface::getTotalWaterLevel() {
 	return sum;
 }
 
+std::vector<Cell>&	WaterSurface::getCells() {
+	return	_cell;
+}
+
+int	WaterSurface::getSizeX() { return _sizeX; }
+int	WaterSurface::getSizeY() { return _sizeY; }
+
 void	WaterSurface::displayWaterLevel() {
 	std::cout << "===== Water Level =====" << std::endl;
 	for (int y = _sizeY - 1; y >= 0; y--) {
@@ -127,7 +134,7 @@ void	WaterSurface::displayASCII() {
 		}
 		std::cout << std::endl;
 	}
-	std::cout << std::endl;
+	std::cout << "Wave speed = " << WAVE_SPEED <<std::endl;
 }
 
 void	WaterSurface::displayCellInfo(int x, int y) {

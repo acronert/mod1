@@ -161,6 +161,8 @@ void	Cell::resolveUnderflow() {
 
 void	Cell::updateWaterLevel() { _w += DELTA_TIME * _totalVelocity; }
 
+float	Cell::getTotalLevel() { return _w + _g; }
+
 float	Cell::getWaterLevel() { return _w; }
 
 float	Cell::getGroundLevel() { return _g; }

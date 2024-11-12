@@ -34,7 +34,12 @@ class WaterSurface
 
 		void	setGroundLevel(int x, int y, float h);
 		void	setWaterLevel(int x, int y, float h);
+
+		std::vector<Cell>&	getCells();
 		float	getTotalWaterLevel();
+		int		getSizeX();
+		int		getSizeY();
+
 
 		void	update();
 

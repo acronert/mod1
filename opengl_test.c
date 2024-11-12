@@ -99,7 +99,6 @@ int main() {
         glfwPollEvents();
     }
 
-    glfwDestroyWindow(window);
-    glfwTerminate();
+
     return 0;
 }
