@@ -3,6 +3,7 @@
 WaterSurface::WaterSurface(int sizeX, int sizeY)
 	: _sizeX(sizeX), _sizeY(sizeY)
 {
+	// can cause problems when size is large (> 1 million)
 	_cell.resize(_sizeX * _sizeY);
 
 	for (int y = 0; y < _sizeY; y++) {
@@ -11,30 +12,11 @@ WaterSurface::WaterSurface(int sizeX, int sizeY)
 			Cell* Ecell = (x < _sizeX - 1) ? &_cell[index(x + 1, y)] : nullptr;
 			Cell* Scell = (y > 0) ? &_cell[index(x, y - 1)] : nullptr;
 			Cell* Wcell = (x > 0) ? &_cell[index(x - 1, y)] : nullptr;
+
 			_cell[index(x, y)] = Cell(1.0f, 0.0f, Ncell, Ecell, Scell, Wcell);
 		}
 	}
 }
-
-// needs _cell to ne a std::vector<Cell*>
-	// + needs a setNeighbor Cell method
-// WaterSurface::WaterSurface(int sizeX, int sizeY)
-// 	: _sizeX(sizeX), _sizeY(sizeY)
-// {
-// 	for (int i = 0; i < _sizeX * _sizeY; i++)
-// 		_cell.push_back(new Cell(1.0f, 0.0f, nullptr, nullptr, nullptr, nullptr));
-
-// 	for (int y = 0; y < _sizeY; y++) {
-// 		for (int x = 0; x < _sizeX; x++) {
-// 			Cell* Ncell = (y < _sizeY - 1) ? &_cell[index(x, y + 1)] : nullptr;
-// 			Cell* Ecell = (x < _sizeX - 1) ? &_cell[index(x + 1, y)] : nullptr;
-// 			Cell* Scell = (y > 0) ? &_cell[index(x, y - 1)] : nullptr;
-// 			Cell* Wcell = (x > 0) ? &_cell[index(x - 1, y)] : nullptr;
-
-// 			_cell[index(x, y)]->setNeighbors(Ncell, Ecell, Scell, Wcell);
-// 		}
-// 	}
-// }
 
 WaterSurface::~WaterSurface() {}
 
@@ -55,17 +37,13 @@ int WaterSurface::index(int x, int y) {
 	return (x + y * _sizeX);
 }
 
+// Check the underflow in a second loop in case of problems (but its slower)
 void	WaterSurface::update() {
-	std::for_each(_cell.begin(), _cell.end(), [](Cell& c) {
-		c.updateVelocity();
-		c.updateWaterLevel();
-	});
-
-	// check underflow
-	for (int x = 0; x < _sizeX; x++) {
-		for (int y = 0; y < _sizeX; y++) {
-			if (_cell[index(x, y)].getWaterLevel() < 0)
-				checkUnderflow(x, y);
+	for (unsigned long int i = 0; i < _cell.size(); i++) {
+		_cell[i].updateVelocity();
+		_cell[i].updateWaterLevel();
+		if (_cell[i].getWaterLevel() < 0) {
+			checkUnderflow(i % _sizeX, i / _sizeY);
 		}
 	}
 }
@@ -74,15 +52,37 @@ void	WaterSurface::checkUnderflow(int x, int y) {
 	if (x < 0 || y < 0 || x >= _sizeX || y >= _sizeY || _cell[index(x, y)].getWaterLevel() >= 0)
 		return;
 
-	// std::cout << "Underflow in [" << x << "][" << y << "]" << std::endl;
-
 	_cell[index(x,y)].resolveUnderflow();
 
-	// recursive call
 	checkUnderflow(x-1, y);
-	checkUnderflow(x+1, y);
 	checkUnderflow(x, y-1);
-	checkUnderflow(x, y+1);
+	// the x+1 and y+1 are not necessary, cause they will be met next in the update loop
+	// checkUnderflow(x+1, y);
+	// checkUnderflow(x, y+1);
+}
+
+void	WaterSurface::setGroundLevel(int x, int y, float h) {
+	if (x < 0 || x >= _sizeX || y < 0 || y >= _sizeY)
+		return;
+	_cell[index(x, y)].setGroundLevel(h);
+}
+
+
+void	WaterSurface::setWaterLevel(int x, int y, float h) {
+	if (x < 0 || x >= _sizeX || y < 0 || y >= _sizeY)
+		return;
+	_cell[index(x, y)].setWaterLevel(h);
+}
+
+float	WaterSurface::getTotalWaterLevel() {
+	float sum = 0;
+
+	for (int x = 0; x < _sizeX; x++) {
+		for (int y = 0; y < _sizeY; y++) {
+			sum += _cell[index(x, y)].getWaterLevel();
+		}
+	}
+	return sum;
 }
 
 void	WaterSurface::displayWaterLevel() {
@@ -119,7 +119,7 @@ void	WaterSurface::displayASCII() {
 	for (int y = _sizeY - 1; y >= 0; y--) {
 		for (int x = 0; x < _sizeX; x++) {
 			color = floor(_cell[index(x, y)].getWaterLevel() / delta);
-			if (color < 0)
+			if (color <= 0)
 				color = -36;
 			else if (color > 23)
 				color = 23;
@@ -129,33 +129,6 @@ void	WaterSurface::displayASCII() {
 	}
 	std::cout << std::endl;
 }
-
-
-
-void	WaterSurface::setGroundLevel(int x, int y, float h) {
-	if (x < 0 || x >= _sizeX || y < 0 || y >= _sizeY)
-		return;
-	_cell[index(x, y)].setGroundLevel(h);
-}
-
-
-void	WaterSurface::setWaterLevel(int x, int y, float h) {
-	if (x < 0 || x >= _sizeX || y < 0 || y >= _sizeY)
-		return;
-	_cell[index(x, y)].setWaterLevel(h);
-}
-
-float	WaterSurface::getTotalWaterLevel() {
-	float sum = 0;
-
-	for (int x = 0; x < _sizeX; x++) {
-		for (int y = 0; y < _sizeY; y++) {
-			sum += _cell[index(x, y)].getWaterLevel();
-		}
-	}
-	return sum;
-}
-
 
 void	WaterSurface::displayCellInfo(int x, int y) {
 	Cell& cell = _cell[index(x, y)];

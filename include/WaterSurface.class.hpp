@@ -15,11 +15,6 @@ class WaterSurface
 	private:
 		int		_sizeX;
 		int		_sizeY;
-		// float	_cellSize;	// in meters
-		// float	_waveSpeed;	// in meters/seconds
-		// float	_k;			// propagation constant
-		// float	_dt;		// delta time
-		// float	_halfLife;
 
 		std::vector<Cell> _cell;
 

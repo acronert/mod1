@@ -41,12 +41,13 @@ class Cell
 		void	updateWaterLevel();
 		void	resolveUnderflow();
 
-
 		float	getWaterLevel();
 		float	getGroundLevel();
 
 		void	setWaterLevel(float w);
 		void	setGroundLevel(float g);
+		void	setNeighbors(Cell* Ncell, Cell* Ecell, Cell* Scell, Cell* Wcell);
+
 
 		float	getVelocityN();
 		float	getVelocityE();

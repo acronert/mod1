@@ -4,11 +4,11 @@
 
 #define WIDTH 100
 #define HEIGHT 100
-#define ITER 10
+#define ITER 100
 
 void	frequencyCounter() {
 	static int count = 0;
-	std::time_t start;
+	static std::time_t start = 0;
 
 	if (count == 0)
 		start = std::time(0);
@@ -26,8 +26,6 @@ int	main() {
 
 	WaterSurface surface(WIDTH, HEIGHT);
 
-
-
 	for (int i = WIDTH / 5 ; i < 4 * WIDTH /5; i++) {
 		surface.setGroundLevel(HEIGHT / 2, i, 1.5f);
 		surface.setWaterLevel(HEIGHT / 2, i, 0.0f);
@@ -41,8 +39,8 @@ int	main() {
 	// Iteration
 	// for (int i = 0; i < ITER; i++) {
 	// 	surface.update();
-	// 	surface.displayWaterLevel();
-	// 	// surface.displayASCII();
+	// 	// surface.displayWaterLevel();
+	// 	surface.displayASCII();
 	// 	// surface.displayCellVelocities(25,25);
 	// 	// surface.displayGroundLevel();
 	// }
@@ -53,9 +51,9 @@ int	main() {
 		// surface.displayWaterLevel();
 		surface.displayASCII();
 		std::cout << std::fixed <<"TotalWaterLevel = " << surface.getTotalWaterLevel() << std::endl;
+		frequencyCounter();
 		usleep(250000);
 		system("clear");
-		frequencyCounter();
 	}
 
 }
