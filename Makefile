@@ -5,6 +5,7 @@ FLAGS		=	-Wall -Wextra -Werror -g3
 GLFLAGS		=	-lglfw -lGL -lGLU -lX11 -lm -pthread
 
 SRCS		=	./src/main.cpp		\
+				./src/Simulation.class.cpp \
 				./src/WaterSurface.class.cpp \
 				./src/Cell.class.cpp		\
 				./src/Renderer.class.cpp

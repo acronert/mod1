@@ -13,29 +13,50 @@
 
 #define DISPLAY_WIDTH	1200
 #define DISPLAY_HEIGHT	800
+#define CAMERA_SPEED	0.1f
 
-struct s_vertex {
+
+struct Vertex {
 	float x;
 	float y;
 	float z;
+};
+
+struct Camera {
+	float posX;
+	float posY;
+	float posZ;
+	float targetX;
+	float targetY;
+	float targetZ;
+};
+
+struct Controls {
+	bool forward = false;
+	bool backward = false;
+	bool left = false;
+	bool right = false;
+	bool up = false;
+	bool down = false;
 };
 
 class Renderer
 {
 	private:
 		GLFWwindow*				_window;
+		Camera					_camera;
+		Controls				_controls;
 		int						_display_width;
 		int						_display_height;
-
-		// s_vertex				_cameraPos;
-		// float				_cameraPitch;
-		// float				_cameraYaw;
-
-
-		std::vector<s_vertex>	_waterVertices;
-		std::vector<s_vertex>	_groundVertices;
+		std::vector<Vertex>		_waterVertices;
+		std::vector<Vertex>		_groundVertices;
 		int						_sizeX;
 		int						_sizeY;
+
+		int		index(int x, int y);
+		void	initializeGL();
+		void	setupCamera();
+		void	initCamera();
 
 	public:
 		Renderer();
@@ -43,13 +64,10 @@ class Renderer
 		Renderer(const Renderer& other);
 		Renderer& operator=(const Renderer& other);
 
-		void	init(int width, int height, std::string title);
 		void	render(WaterSurface& surface);
-		void	generateVertices(std::vector<Cell>& cells, int sizeX, int sizeY);
+		void	generateVertices(std::vector<Cell>& cells);
 		void	drawWaterVertices();
 		void	drawGroundVertices();
-		int		index(int x, int y);
-
 
 };
 
