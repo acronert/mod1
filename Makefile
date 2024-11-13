@@ -6,9 +6,11 @@ GLFLAGS		=	-lglfw -lGL -lGLU -lX11 -lm -pthread
 
 SRCS		=	./src/main.cpp		\
 				./src/Simulation.class.cpp \
+				./src/MapGenerator.class.cpp \
 				./src/WaterSurface.class.cpp \
 				./src/Cell.class.cpp		\
-				./src/Renderer.class.cpp
+				./src/Renderer.class.cpp	\
+				./src/Camera.class.cpp
 
 
 HEADERS		=	./include

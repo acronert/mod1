@@ -1,143 +1,58 @@
 #include "Renderer.class.hpp"
 
-void	frequencyCounter() {
-	static int count = 0;
-	static std::time_t start = 0;
-
-	if (count == 0)
-		start = std::time(0);
-	count++;
-
-	std::time_t now = std::time(0);
-	if (now - start >= 1) {
-		std::cout << count << "FPS" << std::endl;
-		count = 0;
-		start = now;
-	}
-}
-
-void	resize_callback(GLFWwindow* window, int width, int height) {
-	// Update the viewport size
-	glViewport(0, 0, width, height);
-
-	// Update the projection matrix to maintain the aspect ratio
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
-	glMatrixMode(GL_MODELVIEW);
-
-	(void)window;
-}
-
-void	key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	Controls* controls = (Controls*)glfwGetWindowUserPointer(window); // get the controls ptr
-
-	if (action == GLFW_PRESS) {
-		if (key == GLFW_KEY_UP)
-			controls->forward = true;
-		else if (key == GLFW_KEY_DOWN)
-			controls->backward = true;
-		else if (key == GLFW_KEY_LEFT)
-			controls->left = true;
-		else if (key == GLFW_KEY_RIGHT)
-			controls->right = true;
-		else if (key == GLFW_KEY_SPACE)
-			controls->up = true;
-		else if (key == GLFW_KEY_LEFT_SHIFT)
-			controls->down = true;
-	}
-	if (action == GLFW_RELEASE) {
-		if (key == GLFW_KEY_UP)
-			controls->forward = false;
-		else if (key == GLFW_KEY_DOWN)
-			controls->backward = false;
-		else if (key == GLFW_KEY_LEFT)
-			controls->left = false;
-		else if (key == GLFW_KEY_RIGHT)
-			controls->right = false;
-		else if (key == GLFW_KEY_SPACE)
-			controls->up = false;
-		else if (key == GLFW_KEY_LEFT_SHIFT)
-			controls->down = false;
-	}
-	std::cout << "Key = " << key << " / Action = " << action << std::endl;
-
-	(void)scancode;
-	(void)mods;
-
-}
-
-
 Renderer::Renderer() {
-	if (!glfwInit()) {
-		throw std::runtime_error("Failed to init GLFW");
-	}
-
-	_window = glfwCreateWindow(DISPLAY_WIDTH, DISPLAY_HEIGHT, "mod1", NULL, NULL);
-	if (!_window) {
-		glfwTerminate();
-		throw std::runtime_error("Failed to create window");
-	}
-
-	glfwMakeContextCurrent(_window);
-	
-	// set window user pointer
-	glfwSetWindowUserPointer(_window, &_controls);
-
-	// set callbacks
-	glfwSetFramebufferSizeCallback(_window, resize_callback); // resize callback
-	glfwSetKeyCallback(_window, key_callback);
-
-	initializeGL();
+	// _waterTexture = loadTexture(WATER_TEXTURE_PATH);
 }
 
-Renderer::~Renderer() {
-	if (_window) {
-		glfwDestroyWindow(_window);
-		glfwTerminate();
-	}
-}
+Renderer::~Renderer() {}
 
-Renderer::Renderer(const Renderer& other) {
-	(void)other;
-}
+// GLuint	Renderer::loadTexture(const char* filename) {
+// 	GLuint	texture;
+// 	glGenTextures(1, &texture);				// generate a unique texture ID and store it in texture
+// 	glBindTexture(GL_TEXTURE_2D, texture);	// Bind the texture ID to the current GL_TEXTURE_2D (will be used until unbound)
 
-Renderer& Renderer::operator=(const Renderer& other) {
-	if (this != &other) {}
-	return *this;
-}
+// 	int width;
+// 	int height;
+// 	unsigned char* image = SOIL_load_image(filename, &width, &height, 0, SOIL_LOAD_RGB);
+// 	if (!image) {
+// 		std::cerr << "Failed to load texture\n";
+// 		return 0;
+// 	}
+// 	// load the texture in the image
+// 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 
+// 	glGenerateMipmap(GL_TEXTURE_2D); // Create mipmaps for texture
 
+// 	// Texture settings
+// 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+// 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+// 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+// 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-void	Renderer::initializeGL() {
-	// set perspective
-	glEnable(GL_DEPTH_TEST);	// Enable 3D rendering
-	glEnable(GL_MULTISAMPLE);	// MSAA (MultiSample Anti-Aliasing)
-	glEnable(GL_BLEND);			// enable blending
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// set blending for transparency
+// 	SOIL_free_image_data(image);
+// 	glBindTexture(GL_TEXTURE_2D, 0); // unbound the current texture and reset GL_TEXTURE_2d
+// 	return texture;
+// }
 
-	// set projection matrix
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(45.0f, 640.0f / 480.0f, 0.1f, 1000.0f);
-}
+void Renderer::setupCamera(Camera& camera) {
+	float yawRad = camera.yaw * M_PI / 180.0f;
+	float pitchRad = camera.pitch * M_PI / 180.0f;
 
-void	Renderer::setupCamera() {
+	float dirX = cos(pitchRad) * cos(yawRad);
+	float dirY = cos(pitchRad) * sin(yawRad);
+	float dirZ = sin(pitchRad);
+
+	float targetX = camera.posX + dirX;
+	float targetY = camera.posY + dirY;
+	float targetZ = camera.posZ + dirZ;
+
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(_camera.posX, _camera.posY, _camera.posZ,	// camera position
-				_camera.targetX, _camera.targetY, _camera.targetZ,	// target position
-				0.0 , 0.0, 1.0);		// Up direction
+	gluLookAt(camera.posX, camera.posY, camera.posZ,  // Camera position
+			targetX, targetY, targetZ,              // Target position
+			0.0, 0.0, 1.0);                        // Up direction
 }
 
-void	Renderer::initCamera() {
-	_camera.posX = -_sizeX / 2;
-	_camera.posY = - _sizeY / 2;
-	_camera.posZ = (_sizeX + _sizeY) / 2;
-	_camera.targetX = _sizeX / 2;
-	_camera.targetY = _sizeY / 2;
-	_camera.targetZ = 0;
-}
 
 void	Renderer::drawGroundVertices() {
 	glBegin(GL_TRIANGLES);
@@ -154,7 +69,10 @@ void	Renderer::drawGroundVertices() {
 }
 
 void	Renderer::drawWaterVertices() {
-	glEnable(GL_BLEND);
+	glEnable(GL_BLEND);			// Blend for transparency
+	// glEnable(GL_TEXTURE_2D);	// Enable Texutre
+	// glBindTexture(GL_TEXTURE_2D, _waterTexture);
+
 	glBegin(GL_TRIANGLES);
 
 	bool color = 0; // to alternate between triangle types
@@ -166,92 +84,84 @@ void	Renderer::drawWaterVertices() {
 	}
 
 	glEnd();
+
+	// glBindTexture(GL_TEXTURE_2D, 0);	// unbind texture
+	// glDisable(GL_TEXTURE_2D);			// disable texturing
 }
 
-// first triangle
-//      3
-//     "|\"
-//     "| \"
-//     "|  \"
-//     "|___\"
-//     1     2
+// first triangle   second triangle
+//      3               3___2      
+//     "|\"              \  |      
+//     "| \"              \ |      
+//     "|__\"              \|      
+//     1    2               1      
 
-// second triangle
-//     3____2
-//      \   |
-//       \  |
-//        \ |
-//         \|
-//          1
-void	Renderer::generateVertices(std::vector<Cell>& cells) {
-	float	h_coef = 2.0f;	// height coef
-	
+void Renderer::generateVertices(std::vector<Cell>& cells) {
+	int h_coef = 1;
 	_waterVertices.clear();
 	_groundVertices.clear();
-	for (int y = 0; y < _sizeY - 1; y++) {
-		for (int x = 0; x < _sizeX - 1; x++) {
-			// Water Vertices
-				// First triangle of the quad
-			_waterVertices.push_back({static_cast<float>(x), static_cast<float>(y), h_coef * cells[index(x, y)].getTotalLevel()});
-			_waterVertices.push_back({static_cast<float>(x + 1), static_cast<float>(y), h_coef * cells[index(x+1, y)].getTotalLevel()});
-			_waterVertices.push_back({static_cast<float>(x), static_cast<float>(y + 1), h_coef * cells[index(x, y+1)].getTotalLevel()});
-				// Second triangle of the quad
-			_waterVertices.push_back({static_cast<float>(x + 1), static_cast<float>(y), h_coef * cells[index(x+1, y)].getTotalLevel()});
-			_waterVertices.push_back({static_cast<float>(x + 1), static_cast<float>(y + 1), h_coef * cells[index(x+1, y+1)].getTotalLevel()});
-			_waterVertices.push_back({static_cast<float>(x), static_cast<float>(y + 1), h_coef * cells[index(x, y+1)].getTotalLevel()});
+	_waterVertices.reserve((_sizeX - 1) * (_sizeY - 1) * 6);
+	_groundVertices.reserve((_sizeX - 1) * (_sizeY - 1) * 6);
 
-			// Ground Vertices
-				// First triangle of the quad
-			_groundVertices.push_back({static_cast<float>(x), static_cast<float>(y), h_coef * cells[index(x, y)].getGroundLevel()});
-			_groundVertices.push_back({static_cast<float>(x + 1), static_cast<float>(y), h_coef * cells[index(x+1, y)].getGroundLevel()});
-			_groundVertices.push_back({static_cast<float>(x), static_cast<float>(y + 1), h_coef * cells[index(x, y)].getGroundLevel()});
-				// Second triangle of the quad
-			_groundVertices.push_back({static_cast<float>(x + 1), static_cast<float>(y), h_coef * cells[index(x+1, y)].getGroundLevel()});
-			_groundVertices.push_back({static_cast<float>(x + 1), static_cast<float>(y + 1), h_coef * cells[index(x+1, +1)].getGroundLevel()});
-			_groundVertices.push_back({static_cast<float>(x), static_cast<float>(y + 1), h_coef * cells[index(x, y+1)].getGroundLevel()});
+	for (int y = 0; y < _sizeY - 1; ++y) {
+		for (int x = 0; x < _sizeX - 1; ++x) {
+			// Generate water vertices
+			const float vertices[4][3] = {
+				{static_cast<float>(x), static_cast<float>(y), 
+				h_coef * cells[index(x, y)].getWaterVertexHeight()},
+				{static_cast<float>(x + 1), static_cast<float>(y),
+				h_coef * cells[index(x + 1, y)].getWaterVertexHeight()},
+				{static_cast<float>(x), static_cast<float>(y + 1),
+				h_coef * cells[index(x, y + 1)].getWaterVertexHeight()},
+				{static_cast<float>(x + 1), static_cast<float>(y + 1),
+				h_coef * cells[index(x + 1, y + 1)].getWaterVertexHeight()}
+			};
+
+			// First triangle
+			_waterVertices.push_back({vertices[0][0], vertices[0][1], vertices[0][2]});
+			_waterVertices.push_back({vertices[1][0], vertices[1][1], vertices[1][2]});
+			_waterVertices.push_back({vertices[2][0], vertices[2][1], vertices[2][2]});
+
+			// Second triangle
+			_waterVertices.push_back({vertices[1][0], vertices[1][1], vertices[1][2]});
+			_waterVertices.push_back({vertices[3][0], vertices[3][1], vertices[3][2]});
+			_waterVertices.push_back({vertices[2][0], vertices[2][1], vertices[2][2]});
+
+			// Generate ground vertices
+			const float groundVertices[4][3] = {
+				{static_cast<float>(x), static_cast<float>(y),
+				h_coef * cells[index(x, y)].getGroundLevel()},
+				{static_cast<float>(x + 1), static_cast<float>(y),
+				h_coef * cells[index(x + 1, y)].getGroundLevel()},
+				{static_cast<float>(x), static_cast<float>(y + 1),
+				h_coef * cells[index(x, y + 1)].getGroundLevel()},
+				{static_cast<float>(x + 1), static_cast<float>(y + 1),
+				h_coef * cells[index(x + 1, y + 1)].getGroundLevel()}
+			};
+
+			// First triangle
+			_groundVertices.push_back({groundVertices[0][0], groundVertices[0][1], groundVertices[0][2]});
+			_groundVertices.push_back({groundVertices[1][0], groundVertices[1][1], groundVertices[1][2]});
+			_groundVertices.push_back({groundVertices[2][0], groundVertices[2][1], groundVertices[2][2]});
+
+			// Second triangle
+			_groundVertices.push_back({groundVertices[1][0], groundVertices[1][1], groundVertices[1][2]});
+			_groundVertices.push_back({groundVertices[3][0], groundVertices[3][1], groundVertices[3][2]});
+			_groundVertices.push_back({groundVertices[2][0], groundVertices[2][1], groundVertices[2][2]});
 		}
 	}
 }
-
-
 int	Renderer::index(int x, int y) {
 	return x + y * _sizeX;
 }
 
-
-// void	Renderer::manageInput() {
-
-// }
-
-void	Renderer::render(WaterSurface& surface) {
-
+void	Renderer::render(WaterSurface& surface, Camera& camera) {
 	_sizeX = surface.getSizeX();
 	_sizeY = surface.getSizeY();
 
-	initCamera();
+	setupCamera(camera);
 
-	while (!glfwWindowShouldClose(_window)) {
-		glfwPollEvents(); // Poll for and process events (resize, kyboard, etc)
-
-		// manageInput();
-
-		// clear buffer
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-		setupCamera();
-
-
-		// generate and draw vertices
-		generateVertices(surface.getCells());
-		drawGroundVertices();
-		drawWaterVertices();
-
-		surface.update();
-
-		glfwSwapBuffers(_window); // Swap front and back buffers
-
-		frequencyCounter();
-	}
-
+	generateVertices(surface.getCells());
+	drawGroundVertices();
+	drawWaterVertices();
 }

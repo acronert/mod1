@@ -149,3 +149,7 @@ void	WaterSurface::displayCellInfo(int x, int y) {
 	std::cout << "      vW = " << cell.getVelocityW() << std::endl;
 
 }
+
+float	WaterSurface::getWaterVertexHeight(int x, int y) {
+	return _cell[index(x, y)].getWaterVertexHeight();
+}

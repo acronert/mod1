@@ -17,4 +17,6 @@
 # define PROPAGATION	(WAVE_SPEED * WAVE_SPEED) / (CELL_SIZE * CELL_SIZE)
 # define DAMPENING		pow(0.5f, DELTA_TIME / HALF_LIFE) // near 0 for more dampening
 
+
+
 #endif

@@ -159,6 +159,33 @@ void	Cell::resolveUnderflow() {
 	_w = 0;
 }
 
+float	Cell::getWaterVertexHeight() {
+	if (_w > 0.001)
+		return _g + _w;
+
+	// count neighbors that have water and return their _g + _w mean
+	float	vertexHeight = 0;
+	int		neighbors = 0;
+	if (_wN && *_wN > 0.001) {
+		neighbors++;
+		vertexHeight += *_wN + *_gN;
+	}
+	if (_wE && *_wE > 0.001) {
+		neighbors++;
+		vertexHeight += *_wE + *_gE;
+	}
+	if (_wS && *_wS > 0.001) {
+		neighbors++;
+		vertexHeight += *_wS + *_gS;
+	}
+	if (_wW && *_wW > 0.001) {
+		neighbors++;
+		vertexHeight += *_wW + *_gW;
+	}
+	vertexHeight = neighbors ? vertexHeight / neighbors : 0;
+	return vertexHeight;
+}
+
 void	Cell::updateWaterLevel() { _w += DELTA_TIME * _totalVelocity; }
 
 float	Cell::getTotalLevel() { return _w + _g; }

@@ -40,6 +40,7 @@ class WaterSurface
 		int		getSizeX();
 		int		getSizeY();
 
+		float	getWaterVertexHeight(int x, int y);
 
 		void	update();
 

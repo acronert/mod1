@@ -53,6 +53,8 @@ class Cell
 		float	getVelocityE();
 		float	getVelocityS();
 		float	getVelocityW();
+
+		float	getWaterVertexHeight(); // to hangle wall hugging cases
 };
 
 #endif
