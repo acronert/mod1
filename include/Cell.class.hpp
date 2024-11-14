@@ -47,10 +47,10 @@ class Cell
 
 		void	setWaterLevel(float w);
 		void	setGroundLevel(float g);
-		void	setNeighbors(Cell* Ncell, Cell* Ecell, Cell* Scell, Cell* Wcell);
 
 		void	resetWater();
 		void	addWater(float intensity);
+		void	addVelocity(float vN, float vE, float vS, float vW);
 
 		float	getVelocityN();
 		float	getVelocityE();

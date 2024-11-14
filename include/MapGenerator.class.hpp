@@ -14,6 +14,12 @@ struct s_coord {
 	int	z;
 };
 
+struct GridPoint {
+    bool valid = false;
+    float value = 0.0f;
+};
+
+
 class MapGenerator
 {
 	private:
@@ -38,6 +44,12 @@ class MapGenerator
 
 		void	parseInput(std::string& filepath);
 		std::vector<float>	getMap();
+
+
+// float bilinearInterpolation(int x, int y, 
+//                                         const std::vector<std::vector<GridPoint>>& grid,
+//                                         int gridSize);
+float IDWinterpolation(int x, int y, float power);
 
 		void	displayPoints();
 };

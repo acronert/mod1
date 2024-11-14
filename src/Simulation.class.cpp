@@ -131,7 +131,7 @@ void	Simulation::initializeGL() {
 		throw std::runtime_error("Failed to initialize GLEW");
 
 	// initialisation des shaders dans le renderer
-	_renderer->initShaders();
+	// _renderer->initShaders();
 
 	// set window user pointer
 	glfwSetWindowUserPointer(_window, &_input);
@@ -173,35 +173,6 @@ void	Simulation::initializeWaterSurface(std::vector<float> heightMap) {
 	for (size_t i = 0; i < heightMap.size(); i++) {
 		_waterSurface->setGroundLevel(i % _size, i /_size, heightMap[i]);
 	}
-
-	// Set ground level
-	// _waterSurface->loadGroundMap(heightMap);
-	// (void)heightMap;
-
-	// // parse and create the ground map
-	// for (int i = HEIGHT / 5; i < 4 * HEIGHT / 5; i++) {
-	// 	_waterSurface->setGroundLevel(WIDTH/3 -2, i, 2.0f);
-	// 	_waterSurface->setGroundLevel(WIDTH/3 -1, i, 2.5f);
-	// 	_waterSurface->setGroundLevel(WIDTH/3, i, 3.0f);
-	// 	_waterSurface->setGroundLevel(WIDTH/3 + 1, i, 2.5f);
-	// 	_waterSurface->setGroundLevel(WIDTH/3 + 2, i, 2.0f);
-
-	// 	_waterSurface->setGroundLevel(2 * WIDTH/3 -2, i, 3.0f);
-	// 	_waterSurface->setGroundLevel(2 * WIDTH/3 -1, i, 3.0f);
-	// 	_waterSurface->setGroundLevel(2 * WIDTH/3, i, 3.0f);
-	// 	_waterSurface->setGroundLevel(2 * WIDTH/3 + 1, i, 3.0f);
-	// 	_waterSurface->setGroundLevel(2 * WIDTH/3 + 2, i, 3.0f);
-	// }
-	// for (int i = 0; i < WIDTH / 5; i++) {
-	// 	for (int j = 0; j < HEIGHT; j++) {
-	// 		_waterSurface->setGroundLevel(i, j, (WIDTH / 20) - (float)i / 4);
-	// 	}
-	// }
-
-	// // create the water surface / set the type of water event (rain, rise, wave)
-	// _waterSurface->setWaterLevel(WIDTH / 2, HEIGHT / 2, 1000);
-
-
 }
 
 void	Simulation::waterControl() {
@@ -211,15 +182,15 @@ void	Simulation::waterControl() {
 	}
 
 	if (_input.rise_mode) {
-		_waterSurface->riseWater(0.005f, 0.05f);
+		_waterSurface->riseWater(0.01f, 0.1f);
 	}
 
 	if (_input.rain_mode) {
-		_waterSurface->makeRain(0.0001f, 3.0f);
+		_waterSurface->makeRain(0.0003f, 1.0f);
 	}
 
 	if (_input.wave_mode) {
-		_waterSurface->makeWave(100.0f);
+		_waterSurface->makeWave(50.0f);
 		_input.wave_mode = false;
 	}
 }
@@ -235,6 +206,9 @@ void	Simulation::run(std::vector<float> heightMap, int size) {
 	initializeCamera(size);
 
 	while (!glfwWindowShouldClose(_window)) {
+
+		double frameStartTime = glfwGetTime();
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear buffer
 
 		glfwPollEvents(); // Poll for and process events (resize, kyboard, etc)
@@ -251,5 +225,12 @@ void	Simulation::run(std::vector<float> heightMap, int size) {
 		glfwSwapBuffers(_window); // Swap front and back buffers
 
 		frequencyCounter();
+
+		double frameEndTime = glfwGetTime();
+		double frameDuration = frameEndTime - frameStartTime;
+		double timeToWait = 1.0f / TARGET_FPS - frameDuration;
+		if (timeToWait > 0) {
+			glfwWaitEventsTimeout(timeToWait);
+    }
 	}
 }

@@ -1,18 +1,18 @@
 #version 330 core
+out vec4 FragColor;
 
-in vec3 fragNormal;
-in vec3 fragPos;
+in vec3 FragPos;
+in vec3 Normal;
 
-uniform vec3 cameraPos;
-uniform float refractionRatio;
+uniform vec3 lightDirection;
+uniform vec3 lightColor;
+uniform vec3 viewPos;
 
-out vec4 fragColor;
+void main()
+{
+    vec3 norm = normalize(Normal);
+    float diff = max(dot(norm, -lightDirection), 0.0);
+    vec3 diffuse = diff * lightColor;
 
-void main() {
-    vec3 viewDir = normalize(cameraPos - fragPos);
-    vec3 refractedDir = refract(viewDir, normalize(fragNormal), refractionRatio);
-
-    vec4 waterColor = texture(waterTexture, texCoord);
-
-    fragColor = vec4(waterColor.rgb, 0.8);
+    FragColor = vec4(diffuse, 1.0);
 }

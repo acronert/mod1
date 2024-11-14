@@ -198,6 +198,15 @@ void	Cell::addWater(float intensity) {
 		_w = 0;
 }
 
+void	Cell::addVelocity(float vN, float vE, float vS, float vW) {
+	_vN += vN;
+	_vE += vE;
+	if (_vS)
+		*_vS += vS;
+	if (_vW)
+		*_vW += vW;
+}
+
 void	Cell::updateWaterLevel() { _w += DELTA_TIME * _totalVelocity; }
 
 float	Cell::getTotalLevel() { return _w + _g; }

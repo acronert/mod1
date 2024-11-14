@@ -63,10 +63,12 @@ void	MapGenerator::generateMap() {
 			int idx = x + y * _size;
 
 			if (_heightMap[idx] == 0.0f) {
-				_heightMap[idx] = RBFinterpolation(x, y, 0.01f);
+				_heightMap[idx] = IDWinterpolation(x, y, 4.0f);
+				// _heightMap[idx] = RBFinterpolation(x, y, 0.0025f);
 			}
 		}
 	}
+
 }
 
 float	MapGenerator::RBFinterpolation(int x, int y, float epsilon) {
@@ -89,10 +91,7 @@ float	MapGenerator::RBFinterpolation(int x, int y, float epsilon) {
 }
 
 float	MapGenerator::gaussianKernel(float distance, float epsilon) {
-	// return std::exp(-epsilon * distance * distance);
-
-	// decay depending on size
-	return std::exp(-epsilon * distance * distance) * (1.0f - distance / _size);
+	return std::exp(-epsilon * distance * distance);
 }
 
 
@@ -187,3 +186,76 @@ void	MapGenerator::displayPoints() {
 	}
 	
 }
+
+
+float MapGenerator::IDWinterpolation(int x, int y, float power) {
+    float result = 0.0f;
+    float weightSum = 0.0f;
+    
+    // Guard against empty points
+    if (_points.empty()) {
+        return 0.0f;
+    }
+
+    for (const auto& point : _points) {
+        float dx = x - point.x;
+        float dy = y - point.y;
+        float distSquared = dx*dx + dy*dy;
+        
+        // If we're exactly on a known point, return its value
+        if (distSquared < 1e-6f) {
+            return point.z;
+        }
+        
+        // Calculate weight as inverse of distance squared
+        float weight = 1.0f / std::pow(distSquared, power/2.0f);
+        
+        result += point.z * weight;
+        weightSum += weight;
+    }
+    
+    if (weightSum < 1e-6f) {
+        return 0.0f;
+    }
+    
+    return result / weightSum;
+}
+
+
+
+// float MapGenerator::bilinearInterpolation(int x, int y, 
+//                                         const std::vector<std::vector<GridPoint>>& grid,
+//                                         int gridSize) {
+//     // Convert to grid coordinates
+//     float gx = static_cast<float>(x) / gridSize;
+//     float gy = static_cast<float>(y) / gridSize;
+    
+//     // Get grid cell indices
+//     int x1 = static_cast<int>(std::floor(gx));
+//     int y1 = static_cast<int>(std::floor(gy));
+//     int x2 = x1 + 1;
+//     int y2 = y1 + 1;
+    
+//     // Calculate interpolation weights
+//     float wx = gx - x1;
+//     float wy = gy - y1;
+    
+//     // Ensure we have valid points
+//     if (x1 >= 0 && x2 < grid.size() && y1 >= 0 && y2 < grid[0].size()) {
+//         // Get corner values
+//         float v11 = grid[x1][y1].valid ? grid[x1][y1].value : 0.0f;
+//         float v21 = grid[x2][y1].valid ? grid[x2][y1].value : 0.0f;
+//         float v12 = grid[x1][y2].valid ? grid[x1][y2].value : 0.0f;
+//         float v22 = grid[x2][y2].valid ? grid[x2][y2].value : 0.0f;
+        
+//         // Bilinear interpolation
+//         float result = v11 * (1-wx) * (1-wy) +
+//                       v21 * wx * (1-wy) +
+//                       v12 * (1-wx) * wy +
+//                       v22 * wx * wy;
+                      
+//         return result;
+//     }
+    
+//     return 0.0f;
+// }

@@ -40,6 +40,7 @@ class Renderer
 
 		GLuint				_water_shader;
 
+
 	public:
 		Renderer();
 		~Renderer();

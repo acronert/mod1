@@ -11,6 +11,8 @@
 #define DISPLAY_WIDTH 1200
 #define DISPLAY_HEIGHT 800
 
+#define TARGET_FPS 60
+
 class Simulation
 {
 	private:

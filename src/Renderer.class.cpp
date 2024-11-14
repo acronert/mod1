@@ -1,6 +1,7 @@
 #include "Renderer.class.hpp"
 
 Renderer::Renderer() {
+
 }
 
 Renderer::~Renderer() {}
@@ -117,10 +118,10 @@ void	Renderer::drawGroundVertices(std::vector<Cell>& cells) {
 
 void	Renderer::drawWaterVertices(std::vector<Cell>& cells) {
 
-	glUseProgram(_water_shader); // activate shader
+	// glUseProgram(_water_shader); // activate shader
 
 	glEnable(GL_BLEND);			// Blend for transparency
-	
+
 	glBegin(GL_TRIANGLES);
 
 	for (int y = 0; y < _sizeY - 1; ++y) {
@@ -140,24 +141,24 @@ void	Renderer::drawWaterVertices(std::vector<Cell>& cells) {
 			};
 
 			// first triangle
-				glColor4f(0.0, 0.0, 1.0, 0.7 * std::min(1.0f, waterLevel[0]));
+				glColor4f(0.0, 0.0, 0.8, 0.7 * std::min(1.0f, waterLevel[0] / 2.0f));
 				glVertex3f(vertices[0][0], vertices[0][1], vertices[0][2]);
-				glColor4f(0.0, 0.0, 1.0, 0.7 * std::min(1.0f, waterLevel[1]));
+				glColor4f(0.0, 0.0, 0.8, 0.7 * std::min(1.0f, waterLevel[1] / 2.0f));
 				glVertex3f(vertices[1][0], vertices[1][1], vertices[1][2]);
-				glColor4f(0.0, 0.0, 1.0, 0.7 * std::min(1.0f, waterLevel[2]));
+				glColor4f(0.0, 0.0, 0.8, 0.7 * std::min(1.0f, waterLevel[2] / 2.0f));
 				glVertex3f(vertices[2][0], vertices[2][1], vertices[2][2]);
 
 			// second triangle
-				glColor4f(0.0, 0.0, 0.7, 0.7 * std::min(1.0f, waterLevel[2]));
+				glColor4f(0.0, 0.0, 0.6, 0.7 * std::min(1.0f, waterLevel[2] / 2.0f));
 				glVertex3f(vertices[2][0], vertices[2][1], vertices[2][2]);
-				glColor4f(0.0, 0.0, 0.7, 0.7 * std::min(1.0f, waterLevel[3]));
+				glColor4f(0.0, 0.0, 0.6, 0.7 * std::min(1.0f, waterLevel[3] / 2.0f));
 				glVertex3f(vertices[3][0], vertices[3][1], vertices[3][2]);
-				glColor4f(0.0, 0.0, 0.7, 0.7 * std::min(1.0f, waterLevel[0]));
+				glColor4f(0.0, 0.0, 0.6, 0.7 * std::min(1.0f, waterLevel[0] / 2.0f));
 				glVertex3f(vertices[0][0], vertices[0][1], vertices[0][2]);
 		}
 	}
 	glEnd();
-	glUseProgram(0);	// deactive shader
+	// glUseProgram(0);	// deactive shader
 }
 
 int	Renderer::index(int x, int y) {

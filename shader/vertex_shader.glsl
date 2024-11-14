@@ -1,16 +1,18 @@
 #version 330 core
-
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 normal;
 
-uniform mat4 modelViewProjectionMatrix;
-uniform mat4 normalMatrix;
+out vec3 FragPos;
+out vec3 Normal;
 
-out vec3 fragNormal;
-out vec3 fragPos;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
 
-void main() {
-    fragPos = position;
-    fragNormal = mat3(normalMatrix) * normal;
-    gl_Position = modelViewProjectionMatrix * vec4(position, 1.0);
+void main()
+{
+    FragPos = vec3(model * vec4(position, 1.0));
+    Normal = mat3(transpose(inverse(model))) * normal;
+
+    gl_Position = projection * view * vec4(FragPos, 1.0);
 }
