@@ -2,7 +2,7 @@
 NAME		=	mod1
 CXX			=	c++
 FLAGS		=	-Wall -Wextra -Werror -g3
-GLFLAGS		=	-lglfw -lGL -lGLU -lX11 -lm -pthread
+GLFLAGS		=	-lglfw -lGL -lGLU -lX11 -lm -pthread -lGLEW 
 
 SRCS		=	./src/main.cpp		\
 				./src/Simulation.class.cpp \

@@ -13,7 +13,7 @@ WaterSurface::WaterSurface(int sizeX, int sizeY)
 			Cell* Scell = (y > 0) ? &_cell[index(x, y - 1)] : nullptr;
 			Cell* Wcell = (x > 0) ? &_cell[index(x - 1, y)] : nullptr;
 
-			_cell[index(x, y)] = Cell(1.0f, 0.0f, Ncell, Ecell, Scell, Wcell);
+			_cell[index(x, y)] = Cell(0.0f, 0.0f, Ncell, Ecell, Scell, Wcell);
 		}
 	}
 }

@@ -1,9 +1,9 @@
 #ifndef RENDERER_CLASS_HPP
 # define RENDERER_CLASS_HPP
 
+#include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>		// For perspective projection
-// #include <GL/glew.h>
 #include <GLFW/glfw3.h>	// For window and context management
 #include <math.h>
 
@@ -38,8 +38,7 @@ class Renderer
 		int					_sizeX;
 		int					_sizeY;
 
-		GLuint				_waterShader;
-		// GLuint				_waterTexture;
+		GLuint				_water_shader;
 
 	public:
 		Renderer();
@@ -52,8 +51,10 @@ class Renderer
 
 		// GLuint	loadTexture(const char* filename);
 
+		void	initShaders();
 		GLuint	createShaderProgram(const char* vertexFilePath, const char* fragmentFilePath);
 		GLuint	loadShader(const char* filepath, GLenum shaderType);
+
 
 
 		int		index(int x, int y);

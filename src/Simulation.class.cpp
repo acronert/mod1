@@ -116,9 +116,8 @@ void	frequencyCounter() {
 
 void	Simulation::initializeGL() {
 	// Initialize window
-	if (!glfwInit()) {
+	if (!glfwInit())
 		throw std::runtime_error("Failed to init GLFW");
-	}
 
 	_window = glfwCreateWindow(DISPLAY_WIDTH, DISPLAY_HEIGHT, "mod1", NULL, NULL);
 	if (!_window) {
@@ -127,6 +126,12 @@ void	Simulation::initializeGL() {
 	}
 
 	glfwMakeContextCurrent(_window);
+
+	if (glewInit() != GLEW_OK)
+		throw std::runtime_error("Failed to initialize GLEW");
+
+	// initialisation des shaders dans le renderer
+	_renderer->initShaders();
 
 	// set window user pointer
 	glfwSetWindowUserPointer(_window, &_input);
