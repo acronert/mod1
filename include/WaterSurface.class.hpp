@@ -50,6 +50,7 @@ class WaterSurface
 		void	resetWater();
 		void	riseWater(float intensity, float threshold);
 		void	makeRain(float rainIntensity, float dropletSize);
+		void	makeWave(float intensity);
 };
 
 #endif

@@ -9,7 +9,7 @@
 # define DELTA_TIME		1.0f / 60.0f		//	in sec
 # define HALF_LIFE		2.0f			//	in sec
 
-# define WAVE_SPEED		2.0f				//	in meter/sec
+# define WAVE_SPEED		4.0f				//	in meter/sec
 // # define WAVE_SPEED		std::min(2.0f, 0.5f * CELL_SIZE / DELTA_TIME)	//	in meter/sec
 
 # define PROPAGATION	(WAVE_SPEED * WAVE_SPEED) / (CELL_SIZE * CELL_SIZE)

@@ -47,9 +47,8 @@ class Renderer
 
 		void	render(WaterSurface& surface, Camera& camera);
 		void	setupCamera(Camera& camera);
-		void	generateVertices(std::vector<Cell>& cells);
-		void	drawWaterVertices();
-		void	drawGroundVertices();
+		void	drawWaterVertices(std::vector<Cell>& cells);
+		void	drawGroundVertices(std::vector<Cell>& cells);
 
 		// GLuint	loadTexture(const char* filename);
 

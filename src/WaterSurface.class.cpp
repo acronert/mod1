@@ -176,6 +176,9 @@ void	WaterSurface::resetWater() {
 }
 
 void	WaterSurface::riseWater(float intensity, float threshold) {
+	if (intensity <= 0)
+		return;
+
 	for (int y = 0; y < _sizeY; y++) {
 		for (int x = 0; x < _sizeX; x++) {
 			int idx = index(x, y);
@@ -198,6 +201,16 @@ void	WaterSurface::makeRain(float rainIntensity, float dropletSize) {
 
 		_cell[index(x, y)].addWater(dropletSize);
 	}
+}
 
-	
+void	WaterSurface::makeWave(float intensity) {
+	if (intensity <= 0)
+		return;
+
+	for (int x = 0; x < _sizeX; x++) {
+		_cell[index(x, 0)].addWater(intensity);
+		_cell[index(x, 1)].addWater(intensity / 2);
+		_cell[index(x, 2)].addWater(intensity / 3);
+		_cell[index(x, 3)].addWater(intensity / 4);
+	}
 }

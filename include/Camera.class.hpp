@@ -4,7 +4,7 @@
 # include "Input.struct.hpp"
 # include <cmath>
 
-# define CAMERA_MOV_SPEED	0.5f
+# define CAMERA_MOV_SPEED	0.8f
 # define CAMERA_ROT_SPEED	0.8f
 # define DEG_TO_RAD			M_PI / 180.0f
 

@@ -213,9 +213,10 @@ void	Simulation::waterControl() {
 		_waterSurface->makeRain(0.0001f, 3.0f);
 	}
 
-	// if (input.wave_mode) {
-	// 	???
-	// }
+	if (_input.wave_mode) {
+		_waterSurface->makeWave(100.0f);
+		_input.wave_mode = false;
+	}
 }
 
 void	Simulation::run(std::vector<float> heightMap, int size) {
