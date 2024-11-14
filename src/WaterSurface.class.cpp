@@ -153,3 +153,51 @@ void	WaterSurface::displayCellInfo(int x, int y) {
 float	WaterSurface::getWaterVertexHeight(int x, int y) {
 	return _cell[index(x, y)].getWaterVertexHeight();
 }
+
+void	WaterSurface::loadGroundMap(const std::vector<float>& heightMap) {
+	for (int y = 0; y < _sizeY; y++) {
+		for (int x = 0; x < _sizeX; x++) {
+			int idx = index(x, y);
+			if (static_cast<unsigned long>(idx) >= heightMap.size())
+				break;
+			_cell[index(x, y)].setGroundLevel(heightMap[idx]);
+		}
+	}
+
+	// (void)heightMap;
+}
+
+void	WaterSurface::resetWater() {
+	for (int y = 0; y < _sizeY; y++) {
+		for (int x = 0; x < _sizeX; x++) {
+			_cell[index(x, y)].resetWater();
+		}
+	}
+}
+
+void	WaterSurface::riseWater(float intensity, float threshold) {
+	for (int y = 0; y < _sizeY; y++) {
+		for (int x = 0; x < _sizeX; x++) {
+			int idx = index(x, y);
+			if (_cell[idx].getGroundLevel() <= threshold)
+				_cell[idx].addWater(intensity);
+		}
+	}
+}
+
+// rainIntensity : at 0 : no rain, at 1 : SIZE * SIZE droplets per tick
+void	WaterSurface::makeRain(float rainIntensity, float dropletSize) {
+	if (rainIntensity <= 0 || dropletSize <= 0)
+		return;
+
+	int	n_droplets = rainIntensity * _sizeX * _sizeY;
+
+	while (n_droplets--){
+		int x = rand() % _sizeX;
+		int y = rand() % _sizeY;
+
+		_cell[index(x, y)].addWater(dropletSize);
+	}
+
+	
+}

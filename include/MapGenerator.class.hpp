@@ -2,6 +2,7 @@
 # define MAPGENERATOR_CLASS_HPP
 
 # include <vector>
+# include <cmath>
 # include <iostream>
 # include <fstream>
 # include <sstream>
@@ -32,8 +33,8 @@ class MapGenerator
 		void	normalizePoints();
 
 		void	generateMap();
-		float	bicubicInterpolate(int x, int y);
-		float	bicubicKernel(int x, float t);
+		float	RBFinterpolation(int x, int y, float epsilon);
+		float	gaussianKernel(float distance, float epsilon);
 
 		void	parseInput(std::string& filepath);
 		std::vector<float>	getMap();

@@ -4,8 +4,8 @@
 # include "Input.struct.hpp"
 # include <cmath>
 
-# define CAMERA_MOV_SPEED	0.3f
-# define CAMERA_ROT_SPEED	0.7f
+# define CAMERA_MOV_SPEED	0.5f
+# define CAMERA_ROT_SPEED	0.8f
 # define DEG_TO_RAD			M_PI / 180.0f
 
 class Camera
@@ -16,9 +16,6 @@ class Camera
 		float	posX;
 		float	posY;
 		float	posZ;
-		// float	targetX;
-		// float	targetY;
-		// float	targetZ;
 
 		float	yaw;
 		float	pitch;

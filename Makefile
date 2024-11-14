@@ -17,6 +17,10 @@ HEADERS		=	./include
 
 OBJS		=	$(SRCS:.cpp=.o)
 
+
+GLEW_CHECK := $(shell brew list glew --versions 2>/dev/null)
+
+
 all:	$(NAME)
 
 $(NAME): $(OBJS)

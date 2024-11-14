@@ -186,6 +186,18 @@ float	Cell::getWaterVertexHeight() {
 	return vertexHeight;
 }
 
+void	Cell::resetWater() {
+	_w = 0.0f;
+	_vN = 0.0f;
+	_vE = 0.0f;
+}
+
+void	Cell::addWater(float intensity) {
+	_w += intensity;
+	if (_w < 0)
+		_w = 0;
+}
+
 void	Cell::updateWaterLevel() { _w += DELTA_TIME * _totalVelocity; }
 
 float	Cell::getTotalLevel() { return _w + _g; }
@@ -197,6 +209,9 @@ float	Cell::getGroundLevel() { return _g; }
 void	Cell::setWaterLevel(float w){ _w = w; }
 
 void	Cell::setGroundLevel(float g){ _g = g; }
+
+
+
 
 float	Cell::getVelocityN() { return _vN; }
 float	Cell::getVelocityE() { return _vE; }

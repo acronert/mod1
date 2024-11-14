@@ -2,6 +2,8 @@
 
 Renderer::Renderer() {
 	// _waterTexture = loadTexture(WATER_TEXTURE_PATH);
+
+	// _waterShader = createShaderProgram(WATER_VERTEX_SHADER, WATER_FRAGMENT_SHADER);
 }
 
 Renderer::~Renderer() {}
@@ -33,6 +35,64 @@ Renderer::~Renderer() {}
 // 	glBindTexture(GL_TEXTURE_2D, 0); // unbound the current texture and reset GL_TEXTURE_2d
 // 	return texture;
 // }
+
+// SHADERS /////////////////////////////////////////
+	// load shader files
+		// vertex shader: transform vertices
+		// fragment shader : compute color of the pixels
+	// compile it
+	// link the shaders
+	// use them by loading them before drawing vertices
+
+// GLuint Renderer::loadShader(const char* filepath, GLenum shaderType) {
+// 	// Read shader file
+// 	std::ifstream file(filepath);
+// 	std::stringstream buffer;
+// 	buffer << file.rdbuf();
+// 	std::string code = buffer.str();
+// 	const char* shaderCode = code.c_str();
+
+// 	// Create and compile shader
+// 	GLuint shader = glCreateShader(shaderType);
+// 	glShaderSource(shader, 1, &shaderCode, NULL);
+// 	glCompileShader(shader);
+
+// 	// Check for compilation errors
+// 	GLint success;
+// 	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+// 	if (!success) {
+// 		char infoLog[512];
+// 		glGetShaderInfoLog(shader, 512, NULL, infoLog);
+// 		std::cerr << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
+// 	}
+// 	return shader;
+// }
+
+// GLuint Renderer::createShaderProgram(const char* vertexFilePath, const char* fragmentFilePath) {
+// 	GLuint vertexShader = loadShader(vertexFilePath, GL_VERTEX_SHADER);
+// 	GLuint fragmentShader = loadShader(fragmentFilePath, GL_FRAGMENT_SHADER);
+
+// 	GLuint shaderProgram = glCreateProgram();
+// 	glAttachShader(shaderProgram, vertexShader);
+// 	glAttachShader(shaderProgram, fragmentShader);
+// 	glLinkProgram(shaderProgram);
+
+// 	// Check for linking errors
+// 	GLint success;
+// 	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+// 	if (!success) {
+// 		char infoLog[512];
+// 		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+// 		std::cerr << "ERROR::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+// 	}
+
+// 	// Clean up
+// 	glDeleteShader(vertexShader);
+// 	glDeleteShader(fragmentShader);
+
+// 	return shaderProgram;
+// }
+////////////////////////////////////////////////////
 
 void Renderer::setupCamera(Camera& camera) {
 	float yawRad = camera.yaw * M_PI / 180.0f;
@@ -79,7 +139,11 @@ void	Renderer::drawWaterVertices() {
 	for (size_t i = 0; i < _waterVertices.size(); i++) {
 		if (i % 3 == 0)
 			color = !color;
-		glColor4f(0.0, 0.0, color ? 1.0 : 0.5, 0.8); // RGBA
+
+		// if depth < 1, the water is more transparent
+		// float	transparency = 0.7 * min(1.0f, cells.)
+		// glColor4f(0.0, 0.0, color ? 1.0 : 0.5, transparency); // RGBA
+		glColor4f(0.0, 0.0, color ? 1.0 : 0.5, 0.7); // RGBA
 		glVertex3f(_waterVertices[i].x, _waterVertices[i].y, _waterVertices[i].z);
 	}
 
@@ -163,5 +227,8 @@ void	Renderer::render(WaterSurface& surface, Camera& camera) {
 
 	generateVertices(surface.getCells());
 	drawGroundVertices();
+
+	// glUseProgram(_waterShader);
 	drawWaterVertices();
+	// glUseProgram(0);
 }

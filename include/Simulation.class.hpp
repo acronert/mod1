@@ -8,8 +8,6 @@
 #include <ctime>
 
 // TEMP, until ground class implemented
-#define WIDTH 100
-#define HEIGHT 100
 #define DISPLAY_WIDTH 1200
 #define DISPLAY_HEIGHT 800
 
@@ -20,19 +18,21 @@ class Simulation
 		Renderer*		_renderer;
 		Camera			_camera;
 		GLFWwindow*		_window;
-
 		s_input			_input;
 
-
+		size_t			_size;
 
 	public:
 		Simulation();
 		~Simulation();
 
-		void	run();
-		void	init();
-		void	initializeCamera();
+		void	run(std::vector<float> heightMap, int size);
+
+		void	initializeWaterSurface(std::vector<float> heightMap);
+		void	initializeCamera(int size);
 		void	initializeGL();
+
+		void	waterControl();
 };
 
 #endif

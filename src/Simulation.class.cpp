@@ -1,9 +1,9 @@
 #include "Simulation.class.hpp"
 
-Simulation::Simulation()
+Simulation::Simulation() : _size(0)
 {
-	_waterSurface = new WaterSurface(WIDTH, HEIGHT);
 	_renderer = new Renderer();
+	_waterSurface = nullptr;
 	_window = nullptr;
 }
 
@@ -55,6 +55,19 @@ void	key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			input->yawLeft = true;
 		else if (key == GLFW_KEY_RIGHT)
 			input->yawRight = true;
+
+		// Simulation controls
+		else if (key == GLFW_KEY_Q)
+			input->reset_water = true;
+		else if (key == GLFW_KEY_P)
+			input->pause = !input->pause;
+		else if (key == GLFW_KEY_1)
+			input->rise_mode = !input->rise_mode;
+		else if (key == GLFW_KEY_2)
+			input->rain_mode = !input->rain_mode;
+		else if (key == GLFW_KEY_3)
+			input->wave_mode = !input->wave_mode;
+
 	}
 	if (action == GLFW_RELEASE) {
 		if (key == GLFW_KEY_W)
@@ -77,6 +90,7 @@ void	key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			input->yawLeft = false;
 		else if (key == GLFW_KEY_RIGHT)
 			input->yawRight = false;
+
 	}
 
 	(void)scancode;
@@ -98,34 +112,6 @@ void	frequencyCounter() {
 		count = 0;
 		start = now;
 	}
-}
-
-void	Simulation::init() {
-	// parse and create the ground map
-	for (int i = HEIGHT / 5; i < 4 * HEIGHT / 5; i++) {
-		_waterSurface->setGroundLevel(WIDTH/3 -2, i, 2.0f);
-		_waterSurface->setGroundLevel(WIDTH/3 -1, i, 2.5f);
-		_waterSurface->setGroundLevel(WIDTH/3, i, 3.0f);
-		_waterSurface->setGroundLevel(WIDTH/3 + 1, i, 2.5f);
-		_waterSurface->setGroundLevel(WIDTH/3 + 2, i, 2.0f);
-
-		_waterSurface->setGroundLevel(2 * WIDTH/3 -2, i, 3.0f);
-		_waterSurface->setGroundLevel(2 * WIDTH/3 -1, i, 3.0f);
-		_waterSurface->setGroundLevel(2 * WIDTH/3, i, 3.0f);
-		_waterSurface->setGroundLevel(2 * WIDTH/3 + 1, i, 3.0f);
-		_waterSurface->setGroundLevel(2 * WIDTH/3 + 2, i, 3.0f);
-	}
-	for (int i = 0; i < WIDTH / 5; i++) {
-		for (int j = 0; j < HEIGHT; j++) {
-			_waterSurface->setGroundLevel(i, j, (WIDTH / 20) - (float)i / 4);
-		}
-	}
-
-	// create the water surface / set the type of water event (rain, rise, wave)
-	_waterSurface->setWaterLevel(WIDTH / 2, HEIGHT / 2, 1000);
-
-	initializeGL();
-	initializeCamera();
 }
 
 void	Simulation::initializeGL() {
@@ -161,25 +147,101 @@ void	Simulation::initializeGL() {
 	gluPerspective(45.0f, 640.0f / 480.0f, 0.1f, 1000.0f);
 }
 
-void	Simulation::initializeCamera() {
+void	Simulation::initializeCamera(int size) {
 	// init camera
-	_camera.posX = -WIDTH / 2;
-	_camera.posY = -HEIGHT / 2;
-	_camera.posZ = (WIDTH + HEIGHT) / 2;
+	_camera.posX = -size / 2;
+	_camera.posY = -size / 2;
+	_camera.posZ = (size + size) / 2;
+	_camera.pitch = -35;
+	_camera.yaw = 45;
 }
 
-void	Simulation::run() {
+void	Simulation::initializeWaterSurface(std::vector<float> heightMap) {
 
-	init();
+	_waterSurface = new WaterSurface(_size, _size);
+
+	std::cout << heightMap.size() << std::endl;
+
+	if (heightMap.size() > _size * _size)
+		throw std::invalid_argument("heightMap is larger than expected");
+
+	for (size_t i = 0; i < heightMap.size(); i++) {
+		_waterSurface->setGroundLevel(i % _size, i /_size, heightMap[i]);
+	}
+
+	// Set ground level
+	// _waterSurface->loadGroundMap(heightMap);
+	// (void)heightMap;
+
+	// // parse and create the ground map
+	// for (int i = HEIGHT / 5; i < 4 * HEIGHT / 5; i++) {
+	// 	_waterSurface->setGroundLevel(WIDTH/3 -2, i, 2.0f);
+	// 	_waterSurface->setGroundLevel(WIDTH/3 -1, i, 2.5f);
+	// 	_waterSurface->setGroundLevel(WIDTH/3, i, 3.0f);
+	// 	_waterSurface->setGroundLevel(WIDTH/3 + 1, i, 2.5f);
+	// 	_waterSurface->setGroundLevel(WIDTH/3 + 2, i, 2.0f);
+
+	// 	_waterSurface->setGroundLevel(2 * WIDTH/3 -2, i, 3.0f);
+	// 	_waterSurface->setGroundLevel(2 * WIDTH/3 -1, i, 3.0f);
+	// 	_waterSurface->setGroundLevel(2 * WIDTH/3, i, 3.0f);
+	// 	_waterSurface->setGroundLevel(2 * WIDTH/3 + 1, i, 3.0f);
+	// 	_waterSurface->setGroundLevel(2 * WIDTH/3 + 2, i, 3.0f);
+	// }
+	// for (int i = 0; i < WIDTH / 5; i++) {
+	// 	for (int j = 0; j < HEIGHT; j++) {
+	// 		_waterSurface->setGroundLevel(i, j, (WIDTH / 20) - (float)i / 4);
+	// 	}
+	// }
+
+	// // create the water surface / set the type of water event (rain, rise, wave)
+	// _waterSurface->setWaterLevel(WIDTH / 2, HEIGHT / 2, 1000);
+
+
+}
+
+void	Simulation::waterControl() {
+	if (_input.reset_water) {
+		_waterSurface->resetWater();
+		_input.reset_water = false;
+	}
+
+	if (_input.rise_mode) {
+		_waterSurface->riseWater(0.005f, 0.05f);
+	}
+
+	if (_input.rain_mode) {
+		_waterSurface->makeRain(0.0001f, 3.0f);
+	}
+
+	// if (input.wave_mode) {
+	// 	???
+	// }
+}
+
+void	Simulation::run(std::vector<float> heightMap, int size) {
+
+	if (size < 0)
+		throw std::invalid_argument("invalid size");
+	_size = size;
+
+	initializeWaterSurface(heightMap);
+	initializeGL();
+	initializeCamera(size);
 
 	while (!glfwWindowShouldClose(_window)) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear buffer
 
 		glfwPollEvents(); // Poll for and process events (resize, kyboard, etc)
+
 		_camera.update(_input);
 
 		_renderer->render(*_waterSurface, _camera);
-		_waterSurface->update();
+
+		if (!_input.pause) {
+			waterControl();
+			_waterSurface->update();
+		}
+
 		glfwSwapBuffers(_window); // Swap front and back buffers
 
 		frequencyCounter();

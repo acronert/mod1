@@ -32,15 +32,20 @@ Camera& Camera::operator=(const Camera& other)
 	return (*this);
 }
 
-void Camera::update(const s_input& input) {
+void	Camera::update(const s_input& input) {
 	// Calculate the forward direction based on yaw and pitch
 	float yawRad = yaw * DEG_TO_RAD;
-	float pitchRad = pitch * DEG_TO_RAD;
+	// float pitchRad = pitch * DEG_TO_RAD;
+
+	// // Forward vector
+	// float forwardX = cos(pitchRad) * cos(yawRad);
+	// float forwardY = cos(pitchRad) * sin(yawRad);
+	// float forwardZ = sin(pitchRad);
 
 	// Forward vector
-	float forwardX = cos(pitchRad) * cos(yawRad);
-	float forwardY = cos(pitchRad) * sin(yawRad);
-	float forwardZ = sin(pitchRad);
+	float forwardX = cos(yawRad);
+	float forwardY = sin(yawRad);
+	float forwardZ = 0;
 
 	// Right vector (perpendicular to forward, no vertical component)
 	float rightX = -sin(yawRad);

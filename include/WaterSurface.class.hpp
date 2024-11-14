@@ -9,6 +9,7 @@
 #include <vector>
 #include <cmath>
 #include <unistd.h> 
+#include <cstdlib> // rand 
 
 class WaterSurface
 {
@@ -44,7 +45,11 @@ class WaterSurface
 
 		void	update();
 
+		void	loadGroundMap(const std::vector<float>& heightmap);
 
+		void	resetWater();
+		void	riseWater(float intensity, float threshold);
+		void	makeRain(float rainIntensity, float dropletSize);
 };
 
 #endif

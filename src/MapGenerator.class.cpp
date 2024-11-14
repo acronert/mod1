@@ -15,20 +15,7 @@ MapGenerator::MapGenerator(std::string filepath, int rendererSize) : _size(rende
 	std::cout << "Resized points:" << std::endl;
 	displayPoints();
 
-	// Create map using bicubic interpolation
 	generateMap();
-
-	int x =0;
-	for (std::vector<float>::iterator it = _heightMap.begin(); it != _heightMap.end(); it++) {
-		std::cout << std::fixed << std::setprecision(2) << std::setw(8) << *it << " ";
-		if (x < _size -1)
-			x++;
-
-		else {
-			std::cout << std::endl;
-			x = 0;
-		}
-	}
 
 }
 
@@ -62,10 +49,12 @@ MapGenerator::~MapGenerator()
 void	MapGenerator::generateMap() {
 	_heightMap.resize(_size * _size, 0.0f);
 
-	// set known points
-	for (std::vector<s_coord>::iterator it = _points.begin(); it != _points.end(); it++) {
-		int	idx = it->x + it->y * _size;
-		_heightMap[idx] = static_cast<float>(it->z);
+	//add border points to known points ( don't duplicates the corners)
+	for (int x = 0; x < _size; x++) {
+		for (int y = 0; y < _size; y++) {
+			if (!x || !y || x == _size - 1 || y == _size - 1)
+				_points.push_back({x, y, 0});
+		}
 	}
 
 	// interpolate the missing heights
@@ -74,52 +63,36 @@ void	MapGenerator::generateMap() {
 			int idx = x + y * _size;
 
 			if (_heightMap[idx] == 0.0f) {
-				_heightMap[idx] = bicubicInterpolate(x, y);
+				_heightMap[idx] = RBFinterpolation(x, y, 0.01f);
 			}
 		}
 	}
 }
 
-float	MapGenerator::bicubicInterpolate(int x, int y) {
-	float x_t = static_cast<float>(x) / (_size - 1);
-	float y_t = static_cast<float>(y) / (_size - 1);
+float	MapGenerator::RBFinterpolation(int x, int y, float epsilon) {
+	float	result = 0.0f;
+	float	denominator = 0.0f;
 
-	std::vector<std::vector<float>> heights(4, std::vector<float>(4, 0.0f));
-
-	// Get the 16 surrounding heights
-	for (int dy = -1; dy <= 2; ++dy) {
-		for (int dx = -1; dx <= 2; ++dx) {
-			int xx = x + dx;
-			int yy = y + dy;
-			xx = std::max(0, std::min(xx, _size - 1));
-			yy = std::max(0, std::min(yy, _size - 1));
-			int index = xx + yy * _size;
-			heights[dx + 1][dy + 1] = _heightMap[index];
-		}
+	// for each known points
+	for (std::vector<s_coord>::iterator it = _points.begin(); it != _points.end(); it++) {
+		// distance between the point and the target
+		float	distance = std::sqrt(std::pow(x - it->x, 2) + std::pow(y - it->y, 2));
+		// calculate weight using gaussian rbf
+		float	weight = gaussianKernel(distance, epsilon);
+		// sum up weight the value and sum up
+		result += it->z * weight;
+		// sum up the weight to get the denominator
+		denominator += weight;
 	}
 
-	float height = 0.0f;
-	for (int i = 0; i < 4; ++i) {
-		for (int j = 0; j < 4; ++j) {
-			height += heights[i][j] * bicubicKernel(i - 1, x_t) * bicubicKernel(j - 1, y_t);
-		}
-	}
-
-	return height;
+	return result / denominator;
 }
 
-float	MapGenerator::bicubicKernel(int x, float t) {
-	float a = 0.5f;
-	if (x == -1)
-		return (a + 2) * t * t * t - (a + 3) * t * t + 1;
-	else if (x == 0)
-		return a * t * t * t - 5 * a * t * t + 8 * a * t - 4 * a;
-	else if (x == 1)
-		return a * t * t * t - 4 * a * t * t + 7 * a * t - 2 * a;
-	else if (x == 2)
-		return (a - 2) * t * t * t + 3 * (a - 2) * t * t - 6 * (a - 2) * t + 4 * (a - 2);
-	else
-		return 0.0f;
+float	MapGenerator::gaussianKernel(float distance, float epsilon) {
+	// return std::exp(-epsilon * distance * distance);
+
+	// decay depending on size
+	return std::exp(-epsilon * distance * distance) * (1.0f - distance / _size);
 }
 
 
@@ -184,19 +157,21 @@ void	MapGenerator::parseInput(std::string& filepath) {
 		char c1, c2;
 		s_coord coord;
 
-		// check opening parenthesis
-		if (!(iss >> c1) || c1 != '(')
-			throw std::invalid_argument("Invalid file content: expected '('");
-		// Read coordinates
-		if (!(iss >> coord.x >> c1 >> coord.y >> c2 >> coord.z) || c1 != ',' || c2 != ',')
-			throw std::invalid_argument("Invalid file content: expected 'x,y,z'");
-		// check closing parenthesis
-		if (!(iss >> c1) || c1 != ')')
-			throw std::invalid_argument("Invalid file content: expected ')'");
+		while (iss >> c1) {
+			// check opening parenthesis
+			if ( c1 != '(')
+				throw std::invalid_argument("Invalid file content: expected '('");
+			// Read coordinates
+			if (!(iss >> coord.x >> c1 >> coord.y >> c2 >> coord.z) || c1 != ',' || c2 != ',')
+				throw std::invalid_argument("Invalid file content: expected 'x,y,z'");
+			// check closing parenthesis
+			if (!(iss >> c1) || c1 != ')')
+				throw std::invalid_argument("Invalid file content: expected ')'");
 
-		if (coord.x < 0 || coord.y < 0 || coord.z < 0)
-			throw std::invalid_argument("Invalid file content: x,y and z must be positive");
-		_points.push_back(coord);
+			if (coord.x < 0 || coord.y < 0 || coord.z < 0)
+				throw std::invalid_argument("Invalid file content: x,y and z must be positive");
+			_points.push_back(coord);
+		}
 	}
 
 	// CHECK SI DEUX POINTS ONT LES MEMES X ET Y ??
