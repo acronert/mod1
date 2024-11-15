@@ -13,12 +13,12 @@ SRCS		=	./src/main.cpp		\
 				./src/Camera.class.cpp
 
 
-HEADERS		=	./include
+HEADERS		=	-I ./include
+
+LIBS		=	-I ./lib/glew -I ./lib/glm
 
 OBJS		=	$(SRCS:.cpp=.o)
 
-
-GLEW_CHECK := $(shell brew list glew --versions 2>/dev/null)
 
 
 all:	$(NAME)
@@ -28,7 +28,7 @@ $(NAME): $(OBJS)
 	@echo "Compiling $(NAME)"
 
 %.o: %.cpp
-	@$(CXX) $(FLAGS) -I $(HEADERS) -c  $< -o $@
+	@$(CXX) $(FLAGS) $(HEADERS) $(LIBS) -c  $< -o $@
 	@echo "Compiling $<"
 
 clean:

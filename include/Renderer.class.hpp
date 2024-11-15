@@ -14,17 +14,22 @@
 #include "WaterSurface.class.hpp"
 #include "Camera.class.hpp"
 
-// #include <SOIL/SOIL.h>	// for loading textures
 #include <iostream>
 #include <vector>
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp" // for value_ptr
 
 # define DEG_TO_RAD			M_PI / 180.0f
 // # define WATER_TEXTURE_PATH	"texture/water.jpg"
 
-# define WATER_VERTEX_SHADER	"shader/vertex_shader.glsl"
-# define WATER_FRAGMENT_SHADER	"shader/fragment_shader.glsl"
+# define WATER_VERTEX_SHADER	"shader/water_vertex_shader.glsl"
+# define WATER_FRAGMENT_SHADER	"shader/water_fragment_shader.glsl"
+# define GROUND_VERTEX_SHADER	"shader/ground_vertex_shader.glsl"
+# define GROUND_FRAGMENT_SHADER	"shader/ground_fragment_shader.glsl"
 
-struct Vertex {
+struct s_vec3 {
 	float x;
 	float y;
 	float z;
@@ -33,12 +38,21 @@ struct Vertex {
 class Renderer
 {
 	private:
-		std::vector<Vertex>	_waterVertices;
-		std::vector<Vertex>	_groundVertices;
 		int					_sizeX;
 		int					_sizeY;
 
-		GLuint				_water_shader;
+
+		GLuint				_waterVAO;
+		GLuint				_waterVBO;
+		GLint				_water_shader;
+
+		GLuint				_groundVAO;
+		GLuint				_groundVBO;
+		GLint				_ground_shader;
+
+		glm::mat4			_projection;
+		glm::mat4			_view;
+		glm::mat4			_model;
 
 
 	public:
@@ -47,14 +61,18 @@ class Renderer
 
 		void	render(WaterSurface& surface, Camera& camera);
 		void	setupCamera(Camera& camera);
-		void	drawWaterVertices(std::vector<Cell>& cells);
-		void	drawGroundVertices(std::vector<Cell>& cells);
+		std::vector<float>	createWaterVertices(std::vector<Cell>& cells);
+		std::vector<float>	createGroundVertices(std::vector<Cell>& cells);
 
 		// GLuint	loadTexture(const char* filename);
 
-		void	initShaders();
-		GLuint	createShaderProgram(const char* vertexFilePath, const char* fragmentFilePath);
-		GLuint	loadShader(const char* filepath, GLenum shaderType);
+		void	init();
+
+		GLint	createShaderProgram(const char* vertexFilePath, const char* fragmentFilePath);
+		GLint	loadShader(const char* filepath, GLenum shaderType);
+		void	pushQuadVertex(s_vec3 quad, s_vec3 color, std::vector<float>* vertices);
+		void	initializeShader(GLint shader, GLuint VAO, GLuint VBO);
+		void	renderLayer(std::vector<float> vertices, GLint shader, GLuint VAO, GLuint VBO);
 
 
 

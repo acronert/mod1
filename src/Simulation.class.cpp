@@ -115,41 +115,7 @@ void	frequencyCounter() {
 }
 
 void	Simulation::initializeGL() {
-	// Initialize window
-	if (!glfwInit())
-		throw std::runtime_error("Failed to init GLFW");
 
-	_window = glfwCreateWindow(DISPLAY_WIDTH, DISPLAY_HEIGHT, "mod1", NULL, NULL);
-	if (!_window) {
-		glfwTerminate();
-		throw std::runtime_error("Failed to create window");
-	}
-
-	glfwMakeContextCurrent(_window);
-
-	if (glewInit() != GLEW_OK)
-		throw std::runtime_error("Failed to initialize GLEW");
-
-	// initialisation des shaders dans le renderer
-	// _renderer->initShaders();
-
-	// set window user pointer
-	glfwSetWindowUserPointer(_window, &_input);
-
-	// set callbacks
-	glfwSetFramebufferSizeCallback(_window, resize_callback); // resize callback
-	glfwSetKeyCallback(_window, key_callback);
-
-	// set perspective
-	glEnable(GL_DEPTH_TEST);	// Enable 3D rendering
-	glEnable(GL_MULTISAMPLE);	// MSAA (MultiSample Anti-Aliasing)
-	glEnable(GL_BLEND);			// enable blending
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// set blending for transparency
-
-	// set projection matrix
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(45.0f, 640.0f / 480.0f, 0.1f, 1000.0f);
 }
 
 void	Simulation::initializeCamera(int size) {
@@ -202,14 +168,40 @@ void	Simulation::run(std::vector<float> heightMap, int size) {
 	_size = size;
 
 	initializeWaterSurface(heightMap);
-	initializeGL();
+
+	// Initialize window
+	if (!glfwInit())
+		throw std::runtime_error("Failed to init GLFW");
+
+	_window = glfwCreateWindow(DISPLAY_WIDTH, DISPLAY_HEIGHT, "mod1", NULL, NULL);
+	if (!_window) {
+		glfwTerminate();
+		throw std::runtime_error("Failed to create window");
+	}
+
+	glfwMakeContextCurrent(_window);
+
+	if (glewInit() != GLEW_OK)
+		throw std::runtime_error("Failed to initialize GLEW");
+
+	// initialize renderer
+	_renderer->init();
+
+	// set window user pointer
+	glfwSetWindowUserPointer(_window, &_input);
+
+	// set callbacks
+	glfwSetFramebufferSizeCallback(_window, resize_callback); // resize callback
+	glfwSetKeyCallback(_window, key_callback);
+
 	initializeCamera(size);
 
 	while (!glfwWindowShouldClose(_window)) {
 
 		double frameStartTime = glfwGetTime();
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear buffer
+		glClear(GL_COLOR_BUFFER_BIT); // clear buffer
+		glClear(GL_DEPTH_BUFFER_BIT);
 
 		glfwPollEvents(); // Poll for and process events (resize, kyboard, etc)
 
