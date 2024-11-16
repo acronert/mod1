@@ -74,7 +74,7 @@ class Renderer
 		// std::vector<float>	createWaterVertices(std::vector<Cell>& cells);
 		std::vector<float>	createWaterStaticVertices();
 		std::vector<float>	createGroundVertices(std::vector<Cell>& cells);
-		std::vector<float>	createWaterHeightVertices(std::vector<Cell>& cells);
+		std::vector<float>	createWaterDynamicVertices(std::vector<Cell>& cells);
 
 		// GLuint	loadTexture(const char* filename);
 
@@ -89,6 +89,7 @@ class Renderer
 		void	pushQuadVertex(s_vec2 quad, s_vec3 color, std::vector<float>& vertices);
 		void	initializeShader(GLint shader);
 
+		glm::vec3	calculateNormal(glm::vec3& v0, glm::vec3& v1, glm::vec3& v2);
 
 
 		int		index(int x, int y);

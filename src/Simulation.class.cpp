@@ -120,9 +120,9 @@ void	Simulation::initializeGL() {
 
 void	Simulation::initializeCamera(int size) {
 	// init camera
-	_camera.posX = -size / 2;
-	_camera.posY = -size / 2;
-	_camera.posZ = (size + size) / 2;
+	_camera.posX = -size / 8;
+	_camera.posY = -size / 8;
+	_camera.posZ = (size + size) / 8;
 	_camera.pitch = -35;
 	_camera.yaw = 45;
 }
@@ -207,6 +207,8 @@ void	Simulation::run(std::vector<float> heightMap, int size) {
 		_camera.update(_input);
 
 		_renderer->render(*_waterSurface, _camera);
+
+		// usleep(500000);
 
 		if (!_input.pause) {
 			waterControl();
