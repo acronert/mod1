@@ -40,6 +40,11 @@ struct s_vec3 {
 	float z;
 };
 
+struct s_vec2 {
+	float x;
+	float y;
+};
+
 class Renderer
 {
 	private:
@@ -66,9 +71,10 @@ class Renderer
 
 		void	render(WaterSurface& surface, Camera& camera);
 		void	setupCamera(Camera& camera);
-		std::vector<float>	createWaterVertices(std::vector<Cell>& cells);
+		// std::vector<float>	createWaterVertices(std::vector<Cell>& cells);
+		std::vector<float>	createWaterStaticVertices();
 		std::vector<float>	createGroundVertices(std::vector<Cell>& cells);
-		std::vector<float>	updateWaterHeightVertices(std::vector<Cell>& cells);
+		std::vector<float>	createWaterHeightVertices(std::vector<Cell>& cells);
 
 		// GLuint	loadTexture(const char* filename);
 
@@ -80,6 +86,7 @@ class Renderer
 		GLint	createShaderProgram(const char* vertexFilePath, const char* fragmentFilePath);
 		GLint	loadShader(const char* filepath, GLenum shaderType);
 		void	pushQuadVertex(s_vec3 quad, s_vec3 color, std::vector<float>& vertices);
+		void	pushQuadVertex(s_vec2 quad, s_vec3 color, std::vector<float>& vertices);
 		void	initializeShader(GLint shader);
 
 
