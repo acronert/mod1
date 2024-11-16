@@ -46,12 +46,12 @@ class Renderer
 		int					_size;
 
 		GLuint				_waterVAO;
-		GLuint				_groundVAO;
-
-		GLuint				_waterVBO;
-		GLuint				_groundVBO;
-
+		GLuint				_waterStaticVBO;
+		GLuint				_waterDynamicVBO;
 		GLint				_water_shader;
+
+		GLuint				_groundVAO;
+		GLuint				_groundVBO;
 		GLint				_ground_shader;
 
 		// Matrices
@@ -74,8 +74,8 @@ class Renderer
 
 		void	init(std::vector<Cell>& cells, int size);
 		void	initMatrices();
-		void	initGroundVBO();
-		void	initWaterVBO();
+		void	initGround(std::vector<Cell>& cells);
+		void	initWater(std::vector<Cell>& cells);
 
 		GLint	createShaderProgram(const char* vertexFilePath, const char* fragmentFilePath);
 		GLint	loadShader(const char* filepath, GLenum shaderType);

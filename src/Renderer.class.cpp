@@ -20,7 +20,8 @@ Renderer::~Renderer() {
 		glDeleteVertexArrays(1, &_groundVAO);
 		glDeleteVertexArrays(1, &_waterVAO);
 		glDeleteBuffers(1, &_groundVBO);
-		glDeleteBuffers(1, &_waterVBO);
+		glDeleteBuffers(1, &_waterStaticVBO);
+		glDeleteBuffers(1, &_waterDynamicVBO);
 		glDeleteProgram(_ground_shader);
 		glDeleteProgram(_water_shader);
 }
@@ -141,104 +142,104 @@ void	Renderer::pushQuadVertex(s_vec3 quad, s_vec3 color, std::vector<float>& ver
 	vertices.push_back(color.z);	// b
 }
 
-// std::vector<float>	Renderer::createWaterVertices(std::vector<Cell>& cells) {
-// 	// will contain vertex positions, heights and colors (and alpha ?)
-// 	//	x1, y1, height1, r1, g1, b1,
-// 	//	x2, y2, height2, r2, g2, b2,
-// 	// ...
-// 	std::vector<float>	vertices;
+std::vector<float>	Renderer::createWaterVertices(std::vector<Cell>& cells) {
+	// will contain vertex positions, heights and colors (and alpha ?)
+	//	x1, y1, height1, r1, g1, b1,
+	//	x2, y2, height2, r2, g2, b2,
+	// ...
+	std::vector<float>	vertices;
 
-// 	// pre-allocate to gain time
-// 	vertices.reserve((_size - 1) * (_size - 1) * 6 * 6);
-// 	s_vec3 color1 = {0.0, 0.0, 0.7};
-// 	s_vec3 color2 = {0.0, 0.0, 0.5};
+	// pre-allocate to gain time
+	vertices.reserve((_size - 1) * (_size - 1) * 6 * 6);
+	s_vec3 color1 = {0.0, 0.0, 0.7};
+	s_vec3 color2 = {0.0, 0.0, 0.5};
 
-// 	// FILL THE VERTICES ////////////
-// 	for (int y = 0; y < _size - 1; ++y) {
-// 		for (int x = 0; x < _size - 1; ++x) {
-// 			// Find quads	(SW, SE, NE, NW)
-// 			const s_vec3 quad[4] = {
-// 				{static_cast<float>(x), static_cast<float>(y), cells[index(x, y)].getWaterVertexHeight()},
-// 				{static_cast<float>(x + 1), static_cast<float>(y),cells[index(x + 1, y)].getWaterVertexHeight()},
-// 				{static_cast<float>(x + 1), static_cast<float>(y + 1),cells[index(x + 1, y + 1)].getWaterVertexHeight()},
-// 				{static_cast<float>(x), static_cast<float>(y + 1),cells[index(x, y + 1)].getWaterVertexHeight()},
-// 			};
+	// FILL THE VERTICES ////////////
+	for (int y = 0; y < _size - 1; ++y) {
+		for (int x = 0; x < _size - 1; ++x) {
+			// Find quads	(SW, SE, NE, NW)
+			const s_vec3 quad[4] = {
+				{static_cast<float>(x), static_cast<float>(y), cells[index(x, y)].getWaterVertexHeight()},
+				{static_cast<float>(x + 1), static_cast<float>(y),cells[index(x + 1, y)].getWaterVertexHeight()},
+				{static_cast<float>(x + 1), static_cast<float>(y + 1),cells[index(x + 1, y + 1)].getWaterVertexHeight()},
+				{static_cast<float>(x), static_cast<float>(y + 1),cells[index(x, y + 1)].getWaterVertexHeight()},
+			};
 
-// 			// first triangle : 0 -> 1 -> 2
-// 			pushQuadVertex(quad[0], color1, vertices);
-// 			pushQuadVertex(quad[1], color1, vertices);
-// 			pushQuadVertex(quad[2], color1, vertices);
+			// first triangle : 0 -> 1 -> 2
+			pushQuadVertex(quad[0], color1, vertices);
+			pushQuadVertex(quad[1], color1, vertices);
+			pushQuadVertex(quad[2], color1, vertices);
 
-// 			// second triangle : 2 -> 3 -> 0
-// 			pushQuadVertex(quad[2], color2, vertices);
-// 			pushQuadVertex(quad[3], color2, vertices);
-// 			pushQuadVertex(quad[0], color2, vertices);
-// 		}
-// 	}
-// 	return vertices;
-// }
-
-
-
-std::vector<float> Renderer::createWaterVertices(std::vector<Cell>& cells) {
-	const int numThreads = std::thread::hardware_concurrency(); // Get the number of threads available
-	const int rowsPerThread = _size / numThreads;               // Divide grid
-	std::vector<std::vector<float>> threadResults(numThreads);  // Temporary storage for thread results
-	std::mutex mutex;
-
-	// Worker function for each thread
-	auto worker = [&](int startRow, int endRow, int threadIndex) {
-		std::vector<float> localVertices;
-
-		for (int y = startRow; y < endRow; ++y) {
-			for (int x = 0; x < _size - 1; ++x) {
-				// Find quads (SW, SE, NE, NW)
-				const s_vec3 quad[4] = {
-					{static_cast<float>(x), static_cast<float>(y), cells[index(x, y)].getWaterVertexHeight()},
-					{static_cast<float>(x + 1), static_cast<float>(y), cells[index(x + 1, y)].getWaterVertexHeight()},
-					{static_cast<float>(x + 1), static_cast<float>(y + 1), cells[index(x + 1, y + 1)].getWaterVertexHeight()},
-					{static_cast<float>(x), static_cast<float>(y + 1), cells[index(x, y + 1)].getWaterVertexHeight()},
-				};
-
-				// Add vertices for two triangles
-				s_vec3 color1 = {0.0, 0.0, 0.7}; // First triangle
-				pushQuadVertex(quad[0], color1, localVertices);
-				pushQuadVertex(quad[1], color1, localVertices);
-				pushQuadVertex(quad[2], color1, localVertices);
-
-				s_vec3 color2 = {0.0, 0.0, 0.5}; // Second triangle
-				pushQuadVertex(quad[2], color2, localVertices);
-				pushQuadVertex(quad[3], color2, localVertices);
-				pushQuadVertex(quad[0], color2, localVertices);
-			}
+			// second triangle : 2 -> 3 -> 0
+			pushQuadVertex(quad[2], color2, vertices);
+			pushQuadVertex(quad[3], color2, vertices);
+			pushQuadVertex(quad[0], color2, vertices);
 		}
-
-		// Store local results in threadResults
-		std::lock_guard<std::mutex> lock(mutex); // Lock when constructed, unlock when destructed
-		threadResults[threadIndex] = std::move(localVertices);
-	};
-
-	// Create threads
-	std::vector<std::thread> threads;
-	for (int t = 0; t < numThreads; ++t) {
-		int startRow = t * rowsPerThread;
-		int endRow = (t == numThreads - 1) ? _size - 1 : startRow + rowsPerThread;
-		threads.emplace_back(worker, startRow, endRow, t);
 	}
-
-	// Wait for all threads to finish
-	for (auto& thread : threads) {
-		thread.join();
-	}
-
-	// Merge all thread results
-	std::vector<float> vertices;
-	for (auto& result : threadResults) {
-		vertices.insert(vertices.end(), result.begin(), result.end());
-	}
-
 	return vertices;
 }
+
+
+
+// std::vector<float> Renderer::createWaterVertices(std::vector<Cell>& cells) {
+// 	const int numThreads = std::thread::hardware_concurrency(); // Get the number of threads available
+// 	const int rowsPerThread = _size / numThreads;               // Divide grid
+// 	std::vector<std::vector<float>> threadResults(numThreads);  // Temporary storage for thread results
+// 	std::mutex mutex;
+
+// 	// Worker function for each thread
+// 	auto worker = [&](int startRow, int endRow, int threadIndex) {
+// 		std::vector<float> localVertices;
+
+// 		for (int y = startRow; y < endRow; ++y) {
+// 			for (int x = 0; x < _size - 1; ++x) {
+// 				// Find quads (SW, SE, NE, NW)
+// 				const s_vec3 quad[4] = {
+// 					{static_cast<float>(x), static_cast<float>(y), cells[index(x, y)].getWaterVertexHeight()},
+// 					{static_cast<float>(x + 1), static_cast<float>(y), cells[index(x + 1, y)].getWaterVertexHeight()},
+// 					{static_cast<float>(x + 1), static_cast<float>(y + 1), cells[index(x + 1, y + 1)].getWaterVertexHeight()},
+// 					{static_cast<float>(x), static_cast<float>(y + 1), cells[index(x, y + 1)].getWaterVertexHeight()},
+// 				};
+
+// 				// Add vertices for two triangles
+// 				s_vec3 color1 = {0.0, 0.0, 0.7}; // First triangle
+// 				pushQuadVertex(quad[0], color1, localVertices);
+// 				pushQuadVertex(quad[1], color1, localVertices);
+// 				pushQuadVertex(quad[2], color1, localVertices);
+
+// 				s_vec3 color2 = {0.0, 0.0, 0.5}; // Second triangle
+// 				pushQuadVertex(quad[2], color2, localVertices);
+// 				pushQuadVertex(quad[3], color2, localVertices);
+// 				pushQuadVertex(quad[0], color2, localVertices);
+// 			}
+// 		}
+
+// 		// Store local results in threadResults
+// 		std::lock_guard<std::mutex> lock(mutex); // Lock when constructed, unlock when destructed
+// 		threadResults[threadIndex] = std::move(localVertices);
+// 	};
+
+// 	// Create threads
+// 	std::vector<std::thread> threads;
+// 	for (int t = 0; t < numThreads; ++t) {
+// 		int startRow = t * rowsPerThread;
+// 		int endRow = (t == numThreads - 1) ? _size - 1 : startRow + rowsPerThread;
+// 		threads.emplace_back(worker, startRow, endRow, t);
+// 	}
+
+// 	// Wait for all threads to finish
+// 	for (auto& thread : threads) {
+// 		thread.join();
+// 	}
+
+// 	// Merge all thread results
+// 	std::vector<float> vertices;
+// 	for (auto& result : threadResults) {
+// 		vertices.insert(vertices.end(), result.begin(), result.end());
+// 	}
+
+// 	return vertices;
+// }
 
 
 std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
@@ -315,12 +316,57 @@ void	Renderer::initMatrices() {
 	_model = glm::mat4(1.0f);
 }
 
-void	Renderer::initGroundVBO() {
+	// Define vertex attributes
+		// void glVertexAttribPointer(
+		//     GLuint index,          // Attribute index in the shader (layout location)
+		//     GLint size,            // Number of components per vertex attribute
+		//     GLenum type,           // Data type of each component
+		//     GLboolean normalized,  // Whether to normalize the data
+		//     GLsizei stride,        // Byte offset between consecutive attributes
+		//     const void *pointer    // Byte offset to the first component of the attribute in the VBO
+		// );
+void	Renderer::initGround(std::vector<Cell>& cells) {
+	glGenVertexArrays(1, &_groundVAO);	// Create  VAO
+	glGenBuffers(1, &_groundVBO);		// generate VBO
 
-}
+	glBindVertexArray(_groundVAO);		// Bind VAO
+	glBindBuffer(GL_ARRAY_BUFFER, _groundVBO);	// Bind VBO on VAO
 
-void	Renderer::initWaterVBO() {
+		// Define attributes
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0); // Position
+	glEnableVertexAttribArray(0);	// Location 0
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))); // Color
+	glEnableVertexAttribArray(1);	// Location 1
+
+		// Send data to the VBO
+	std::vector<float> _ground_vertices = createGroundVertices(cells);
+	glBufferData(GL_ARRAY_BUFFER, _ground_vertices.size() * sizeof(float), _ground_vertices.data(), GL_STATIC_DRAW);
 	
+	// Init Shader
+	_ground_shader = createShaderProgram(GROUND_VERTEX_SHADER, GROUND_FRAGMENT_SHADER);
+	initializeShader(_ground_shader);
+}
+void	Renderer::initWater(std::vector<Cell>& cells) {
+	glGenVertexArrays(1, &_waterVAO);	// Create  VAO
+	glGenBuffers(1, &_waterStaticVBO);		// generate VBO
+
+	glBindVertexArray(_waterVAO);		// Bind VAO
+	glBindBuffer(GL_ARRAY_BUFFER, _waterStaticVBO);	// Bind VBO on VAO
+
+		// Define attributes
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0); // Position
+	glEnableVertexAttribArray(0);	// Location 0
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))); // Color
+	glEnableVertexAttribArray(1);	// Location 1
+
+		// Send initial data to the VBO
+	std::vector<float> _water_vertices = createWaterVertices(cells);
+	glBufferData(GL_ARRAY_BUFFER, _water_vertices.size() * sizeof(float), _water_vertices.data(), GL_DYNAMIC_DRAW);
+
+	// Init Shader
+	_water_shader = createShaderProgram(WATER_VERTEX_SHADER, WATER_FRAGMENT_SHADER);
+	initializeShader(_water_shader);
+
 }
 
 void	Renderer::init(std::vector<Cell>& cells, int size) {
@@ -335,50 +381,10 @@ void	Renderer::init(std::vector<Cell>& cells, int size) {
 	glEnable(GL_BLEND);									// enable blending
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// set blending for transparency
 
+	initGround(cells);
+	initWater(cells);
 
-	// Ground VBO (Static) /////////////////////////////////////////////////////
-	glGenVertexArrays(1, &_groundVAO);	// Create  VAO
-	glGenBuffers(1, &_groundVBO);		// generate VBO
-
-	glBindVertexArray(_groundVAO);		// Bind VAO
-	glBindBuffer(GL_ARRAY_BUFFER, _groundVBO);	// Bind VBO on VAO
-		// Define vertex attributes
-		// void glVertexAttribPointer(
-		//     GLuint index,          // Attribute index in the shader (layout location)
-		//     GLint size,            // Number of components per vertex attribute
-		//     GLenum type,           // Data type of each component
-		//     GLboolean normalized,  // Whether to normalize the data
-		//     GLsizei stride,        // Byte offset between consecutive attributes
-		//     const void *pointer    // Byte offset to the first component of the attribute in the VBO
-		// );
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0); // Position
-	glEnableVertexAttribArray(0);	// Location 0
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))); // Color
-	glEnableVertexAttribArray(1);	// Location 1
-		// Send data to the VBO
-	std::vector<float> _ground_vertices = createGroundVertices(cells);
-	glBufferData(GL_ARRAY_BUFFER, _ground_vertices.size() * sizeof(float), _ground_vertices.data(), GL_STATIC_DRAW);
-
-	// Water VBO (Dynamic) /////////////////////////////////////////////////////
-	glGenVertexArrays(1, &_waterVAO);	// Create  VAO
-	glGenBuffers(1, &_waterVBO);		// generate VBO
-
-	glBindVertexArray(_waterVAO);		// Bind VAO
-	glBindBuffer(GL_ARRAY_BUFFER, _waterVBO);	// Bind VBO on VAO
-		// Define vertex attributes
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0); // Position
-	glEnableVertexAttribArray(0);	// Location 0
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))); // Color
-	glEnableVertexAttribArray(1);	// Location 1
-		// Send initial data to the VBO
-	std::vector<float> _water_vertices = createWaterVertices(cells);
-	glBufferData(GL_ARRAY_BUFFER, _water_vertices.size() * sizeof(float), _water_vertices.data(), GL_DYNAMIC_DRAW);
-
-	// Initialize Shaders
-	_water_shader = createShaderProgram(WATER_VERTEX_SHADER, WATER_FRAGMENT_SHADER);
-	_ground_shader = createShaderProgram(GROUND_VERTEX_SHADER, GROUND_FRAGMENT_SHADER);
-	initializeShader(_water_shader);
-	initializeShader(_ground_shader);
+	
 }
 
 void	Renderer::render(WaterSurface& surface, Camera& camera) {
@@ -398,7 +404,7 @@ void	Renderer::render(WaterSurface& surface, Camera& camera) {
 	glBindVertexArray(_waterVAO);
 
 		// Update the dynamic water VBO
-	// glBindBuffer(GL_ARRAY_BUFFER, _waterVBO);
+	// glBindBuffer(GL_ARRAY_BUFFER, _waterStaticVBO);
 	// std::vector<float> water_height = updateWaterHeightVertices(surface.getCells());
 	// const size_t	stride = 6 * sizeof(float);
 	// const size_t	offset = 2 * sizeof(float);
