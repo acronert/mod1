@@ -1,7 +1,7 @@
 #include "Simulation.class.hpp"
 #include "MapGenerator.class.hpp"
 
-#define SIZE	100
+#define SIZE	200
 
 int	main(int argc, char** argv) {
 

@@ -22,7 +22,6 @@ class Simulation
 		GLFWwindow*		_window;
 		s_input			_input;
 
-		size_t			_size;
 
 	public:
 		Simulation();
@@ -30,7 +29,7 @@ class Simulation
 
 		void	run(std::vector<float> heightMap, int size);
 
-		void	initializeWaterSurface(std::vector<float> heightMap);
+		void	initializeWaterSurface(std::vector<float> heightMap, int size);
 		void	initializeCamera(int size);
 		void	initializeGL();
 

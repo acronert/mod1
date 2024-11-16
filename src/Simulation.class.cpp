@@ -1,6 +1,6 @@
 #include "Simulation.class.hpp"
 
-Simulation::Simulation() : _size(0)
+Simulation::Simulation()
 {
 	_renderer = new Renderer();
 	_waterSurface = nullptr;
@@ -127,17 +127,17 @@ void	Simulation::initializeCamera(int size) {
 	_camera.yaw = 45;
 }
 
-void	Simulation::initializeWaterSurface(std::vector<float> heightMap) {
+void	Simulation::initializeWaterSurface(std::vector<float> heightMap, int size) {
 
-	_waterSurface = new WaterSurface(_size, _size);
+	_waterSurface = new WaterSurface(size, size);
 
 	std::cout << heightMap.size() << std::endl;
 
-	if (heightMap.size() > _size * _size)
+	if (heightMap.size() > size * size)
 		throw std::invalid_argument("heightMap is larger than expected");
 
 	for (size_t i = 0; i < heightMap.size(); i++) {
-		_waterSurface->setGroundLevel(i % _size, i /_size, heightMap[i]);
+		_waterSurface->setGroundLevel(i % size, i /size, heightMap[i]);
 	}
 }
 
@@ -165,9 +165,8 @@ void	Simulation::run(std::vector<float> heightMap, int size) {
 
 	if (size < 0)
 		throw std::invalid_argument("invalid size");
-	_size = size;
 
-	initializeWaterSurface(heightMap);
+	initializeWaterSurface(heightMap, size);
 
 	// Initialize window
 	if (!glfwInit())
@@ -185,7 +184,7 @@ void	Simulation::run(std::vector<float> heightMap, int size) {
 		throw std::runtime_error("Failed to initialize GLEW");
 
 	// initialize renderer
-	_renderer->init();
+	_renderer->init(_waterSurface->getCells(), size);
 
 	// set window user pointer
 	glfwSetWindowUserPointer(_window, &_input);
@@ -198,7 +197,7 @@ void	Simulation::run(std::vector<float> heightMap, int size) {
 
 	while (!glfwWindowShouldClose(_window)) {
 
-		double frameStartTime = glfwGetTime();
+		// double frameStartTime = glfwGetTime();
 
 		glClear(GL_COLOR_BUFFER_BIT); // clear buffer
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -218,11 +217,11 @@ void	Simulation::run(std::vector<float> heightMap, int size) {
 
 		frequencyCounter();
 
-		double frameEndTime = glfwGetTime();
-		double frameDuration = frameEndTime - frameStartTime;
-		double timeToWait = 1.0f / TARGET_FPS - frameDuration;
-		if (timeToWait > 0) {
-			glfwWaitEventsTimeout(timeToWait);
-    }
+	// 	double frameEndTime = glfwGetTime();
+	// 	double frameDuration = frameEndTime - frameStartTime;
+	// 	double timeToWait = 1.0f / TARGET_FPS - frameDuration;
+	// 	if (timeToWait > 0) {
+	// 		glfwWaitEventsTimeout(timeToWait);
+    // }
 	}
 }

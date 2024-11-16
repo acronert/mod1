@@ -38,18 +38,18 @@ struct s_vec3 {
 class Renderer
 {
 	private:
-		int					_sizeX;
-		int					_sizeY;
-
+		int					_size;
 
 		GLuint				_waterVAO;
-		GLuint				_waterVBO;
-		GLint				_water_shader;
-
 		GLuint				_groundVAO;
+
+		GLuint				_waterVBO;
 		GLuint				_groundVBO;
+
+		GLint				_water_shader;
 		GLint				_ground_shader;
 
+		// Matrices
 		glm::mat4			_projection;
 		glm::mat4			_view;
 		glm::mat4			_model;
@@ -63,16 +63,19 @@ class Renderer
 		void	setupCamera(Camera& camera);
 		std::vector<float>	createWaterVertices(std::vector<Cell>& cells);
 		std::vector<float>	createGroundVertices(std::vector<Cell>& cells);
+		std::vector<float>	updateWaterHeightVertices(std::vector<Cell>& cells);
 
 		// GLuint	loadTexture(const char* filename);
 
-		void	init();
+		void	init(std::vector<Cell>& cells, int size);
+		void	initMatrices();
+		void	initGroundVBO();
+		void	initWaterVBO();
 
 		GLint	createShaderProgram(const char* vertexFilePath, const char* fragmentFilePath);
 		GLint	loadShader(const char* filepath, GLenum shaderType);
 		void	pushQuadVertex(s_vec3 quad, s_vec3 color, std::vector<float>* vertices);
-		void	initializeShader(GLint shader, GLuint VAO, GLuint VBO);
-		void	renderLayer(std::vector<float> vertices, GLint shader, GLuint VAO, GLuint VBO);
+		void	initializeShader(GLint shader);
 
 
 
