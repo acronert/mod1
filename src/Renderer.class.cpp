@@ -104,14 +104,6 @@ void Renderer::setupCamera(Camera& camera) {
 	glUseProgram(0);
 }
 
-void	Renderer::pushQuadVertex(s_vec3 quad, s_vec3 color, std::vector<float>* vertices) {
-	vertices->push_back(quad.x);
-	vertices->push_back(quad.y);
-	vertices->push_back(quad.z);
-	vertices->push_back(color.x);	// r
-	vertices->push_back(color.y);	// g
-	vertices->push_back(color.z);	// b
-}
 
 std::vector<float>	Renderer::updateWaterHeightVertices(std::vector<Cell>& cells) {
 	std::vector<float>	vertices;
@@ -140,44 +132,123 @@ std::vector<float>	Renderer::updateWaterHeightVertices(std::vector<Cell>& cells)
 	return vertices;
 }
 
-std::vector<float>	Renderer::createWaterVertices(std::vector<Cell>& cells) {
-	// will contain vertex positions, heights and colors (and alpha ?)
-	//	x1, y1, height1, r1, g1, b1,
-	//	x2, y2, height2, r2, g2, b2,
-	// ...
-	std::vector<float>	vertices;
+void	Renderer::pushQuadVertex(s_vec3 quad, s_vec3 color, std::vector<float>& vertices) {
+	vertices.push_back(quad.x);
+	vertices.push_back(quad.y);
+	vertices.push_back(quad.z);
+	vertices.push_back(color.x);	// r
+	vertices.push_back(color.y);	// g
+	vertices.push_back(color.z);	// b
+}
 
-	// FILL THE VERTICES ////////////
-	for (int y = 0; y < _size - 1; ++y) {
-		for (int x = 0; x < _size - 1; ++x) {
-			// Find quads	(SW, SE, NE, NW)
-			const s_vec3 quad[4] = {
-				{static_cast<float>(x), static_cast<float>(y), cells[index(x, y)].getWaterVertexHeight()},
-				{static_cast<float>(x + 1), static_cast<float>(y),cells[index(x + 1, y)].getWaterVertexHeight()},
-				{static_cast<float>(x + 1), static_cast<float>(y + 1),cells[index(x + 1, y + 1)].getWaterVertexHeight()},
-				{static_cast<float>(x), static_cast<float>(y + 1),cells[index(x, y + 1)].getWaterVertexHeight()},
-			};
+// std::vector<float>	Renderer::createWaterVertices(std::vector<Cell>& cells) {
+// 	// will contain vertex positions, heights and colors (and alpha ?)
+// 	//	x1, y1, height1, r1, g1, b1,
+// 	//	x2, y2, height2, r2, g2, b2,
+// 	// ...
+// 	std::vector<float>	vertices;
 
-			// first triangle : 0 -> 1 -> 2
-			s_vec3 color = {0.0, 0.0, 0.7};
-			pushQuadVertex(quad[0], color, &vertices);
-			pushQuadVertex(quad[1], color, &vertices);
-			pushQuadVertex(quad[2], color, &vertices);
+// 	// pre-allocate to gain time
+// 	vertices.reserve((_size - 1) * (_size - 1) * 6 * 6);
+// 	s_vec3 color1 = {0.0, 0.0, 0.7};
+// 	s_vec3 color2 = {0.0, 0.0, 0.5};
 
-			// second triangle : 2 -> 3 -> 0
-			color = {0.0, 0.0, 0.5};
-			pushQuadVertex(quad[2], color, &vertices);
-			pushQuadVertex(quad[3], color, &vertices);
-			pushQuadVertex(quad[0], color, &vertices);
+// 	// FILL THE VERTICES ////////////
+// 	for (int y = 0; y < _size - 1; ++y) {
+// 		for (int x = 0; x < _size - 1; ++x) {
+// 			// Find quads	(SW, SE, NE, NW)
+// 			const s_vec3 quad[4] = {
+// 				{static_cast<float>(x), static_cast<float>(y), cells[index(x, y)].getWaterVertexHeight()},
+// 				{static_cast<float>(x + 1), static_cast<float>(y),cells[index(x + 1, y)].getWaterVertexHeight()},
+// 				{static_cast<float>(x + 1), static_cast<float>(y + 1),cells[index(x + 1, y + 1)].getWaterVertexHeight()},
+// 				{static_cast<float>(x), static_cast<float>(y + 1),cells[index(x, y + 1)].getWaterVertexHeight()},
+// 			};
+
+// 			// first triangle : 0 -> 1 -> 2
+// 			pushQuadVertex(quad[0], color1, vertices);
+// 			pushQuadVertex(quad[1], color1, vertices);
+// 			pushQuadVertex(quad[2], color1, vertices);
+
+// 			// second triangle : 2 -> 3 -> 0
+// 			pushQuadVertex(quad[2], color2, vertices);
+// 			pushQuadVertex(quad[3], color2, vertices);
+// 			pushQuadVertex(quad[0], color2, vertices);
+// 		}
+// 	}
+// 	return vertices;
+// }
+
+
+
+std::vector<float> Renderer::createWaterVertices(std::vector<Cell>& cells) {
+	const int numThreads = std::thread::hardware_concurrency(); // Get the number of threads available
+	const int rowsPerThread = _size / numThreads;               // Divide grid
+	std::vector<std::vector<float>> threadResults(numThreads);  // Temporary storage for thread results
+	std::mutex mutex;
+
+	// Worker function for each thread
+	auto worker = [&](int startRow, int endRow, int threadIndex) {
+		std::vector<float> localVertices;
+
+		for (int y = startRow; y < endRow; ++y) {
+			for (int x = 0; x < _size - 1; ++x) {
+				// Find quads (SW, SE, NE, NW)
+				const s_vec3 quad[4] = {
+					{static_cast<float>(x), static_cast<float>(y), cells[index(x, y)].getWaterVertexHeight()},
+					{static_cast<float>(x + 1), static_cast<float>(y), cells[index(x + 1, y)].getWaterVertexHeight()},
+					{static_cast<float>(x + 1), static_cast<float>(y + 1), cells[index(x + 1, y + 1)].getWaterVertexHeight()},
+					{static_cast<float>(x), static_cast<float>(y + 1), cells[index(x, y + 1)].getWaterVertexHeight()},
+				};
+
+				// Add vertices for two triangles
+				s_vec3 color1 = {0.0, 0.0, 0.7}; // First triangle
+				pushQuadVertex(quad[0], color1, localVertices);
+				pushQuadVertex(quad[1], color1, localVertices);
+				pushQuadVertex(quad[2], color1, localVertices);
+
+				s_vec3 color2 = {0.0, 0.0, 0.5}; // Second triangle
+				pushQuadVertex(quad[2], color2, localVertices);
+				pushQuadVertex(quad[3], color2, localVertices);
+				pushQuadVertex(quad[0], color2, localVertices);
+			}
 		}
+
+		// Store local results in threadResults
+		std::lock_guard<std::mutex> lock(mutex); // Lock when constructed, unlock when destructed
+		threadResults[threadIndex] = std::move(localVertices);
+	};
+
+	// Create threads
+	std::vector<std::thread> threads;
+	for (int t = 0; t < numThreads; ++t) {
+		int startRow = t * rowsPerThread;
+		int endRow = (t == numThreads - 1) ? _size - 1 : startRow + rowsPerThread;
+		threads.emplace_back(worker, startRow, endRow, t);
 	}
+
+	// Wait for all threads to finish
+	for (auto& thread : threads) {
+		thread.join();
+	}
+
+	// Merge all thread results
+	std::vector<float> vertices;
+	for (auto& result : threadResults) {
+		vertices.insert(vertices.end(), result.begin(), result.end());
+	}
+
 	return vertices;
 }
+
 
 std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
 	std::vector<float>	vertices; // x1, y1, height1, r1, g1, b1, x2, y2, height2, r2, g2, b2, ...
 
-	// FILL THE VERTICES ////////////
+	// pre-allocate to gain time
+	vertices.reserve((_size - 1) * (_size - 1) * 6 * 6);
+	s_vec3 color1 = {0.0, 0.7, 0.0};
+	s_vec3 color2 = {0.0, 0.5, 0.0};
+
 	for (int y = 0; y < _size - 1; ++y) {
 		for (int x = 0; x < _size - 1; ++x) {
 			// Find quads	(SW, SE, NE, NW)
@@ -189,16 +260,14 @@ std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
 			};
 
 			// first triangle : 0 -> 1 -> 2
-			s_vec3 color = {0.0, 0.7, 0.0};
-			pushQuadVertex(quad[0], color, &vertices);
-			pushQuadVertex(quad[1], color, &vertices);
-			pushQuadVertex(quad[2], color, &vertices);
+			pushQuadVertex(quad[0], color1, vertices);
+			pushQuadVertex(quad[1], color1, vertices);
+			pushQuadVertex(quad[2], color1, vertices);
 
 			// second triangle : 2 -> 3 -> 0
-			color = {0.0, 0.5, 0.0};
-			pushQuadVertex(quad[2], color, &vertices);
-			pushQuadVertex(quad[3], color, &vertices);
-			pushQuadVertex(quad[0], color, &vertices);
+			pushQuadVertex(quad[2], color2, vertices);
+			pushQuadVertex(quad[3], color2, vertices);
+			pushQuadVertex(quad[0], color2, vertices);
 		}
 	}
 	return vertices;

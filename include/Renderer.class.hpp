@@ -17,6 +17,11 @@
 #include <iostream>
 #include <vector>
 
+
+#include <thread>
+#include <mutex>
+
+
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp" // for value_ptr
@@ -74,7 +79,7 @@ class Renderer
 
 		GLint	createShaderProgram(const char* vertexFilePath, const char* fragmentFilePath);
 		GLint	loadShader(const char* filepath, GLenum shaderType);
-		void	pushQuadVertex(s_vec3 quad, s_vec3 color, std::vector<float>* vertices);
+		void	pushQuadVertex(s_vec3 quad, s_vec3 color, std::vector<float>& vertices);
 		void	initializeShader(GLint shader);
 
 
