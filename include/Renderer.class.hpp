@@ -85,10 +85,9 @@ class Renderer
 
 		GLint	createShaderProgram(const char* vertexFilePath, const char* fragmentFilePath);
 		GLint	loadShader(const char* filepath, GLenum shaderType);
-		void	pushQuadVertex(s_vec3 quad, s_vec3 color, std::vector<float>& vertices);
-		void	pushQuadVertex(s_vec2 quad, s_vec3 color, std::vector<float>& vertices);
 		void	initializeShader(GLint shader);
 		void	pushVertex(glm::vec3 vertex, std::vector<float>& dest);
+		void	pushVertex(glm::vec2 vertex, std::vector<float>& dest);
 
 		// glm::vec3	calculateNormal(glm::vec3& v0, glm::vec3& v1, glm::vec3& v2);
 		glm::vec3	calculateNormal(float up, float down, float left, float right);

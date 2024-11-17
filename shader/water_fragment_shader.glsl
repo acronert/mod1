@@ -6,7 +6,4 @@ in float transparency;
 void main() {
 
     gl_FragColor = vec4(fragColor, transparency);
-
-
-
 }

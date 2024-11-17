@@ -19,15 +19,13 @@ void main() {
     gl_Position = projection * view * model * vec4(position, height, 1.0);
 
     // set lightDir and normalize
-    vec3 lightDir = normalize(vec3(1.0, 1.0, -1.0));
-
-    // transform the normal to world space
+    vec3 lightDir = normalize(vec3(0.5, 0.5, -1.0));
 
     // calculate light intensity
     float intensity = max(dot(normal, -lightDir), 0.2);
 
     // calculate transparency
-    transparency = min(depth, 0.8);
+    transparency = min(depth, 0.6);
 
     fragColor = intensity * color;
 

@@ -1,19 +1,6 @@
 #include "Renderer.class.hpp"
 
-
-
-void printMat4(const glm::mat4& mat) {
-	for (int i = 0; i < 4; ++i) {
-		for (int j = 0; j < 4; ++j) {
-			std::cout << mat[i][j] << " ";
-		}
-		std::cout << std::endl;
-	}
-}
-
-Renderer::Renderer() {
-
-}
+Renderer::Renderer() {}
 
 Renderer::~Renderer() {
 	// Cleanup
@@ -26,7 +13,25 @@ Renderer::~Renderer() {
 		glDeleteProgram(_water_shader);
 }
 
+void	Renderer::init(std::vector<Cell>& cells, int size) {
+	_size = size;
 
+	// Initialize matrices
+	initMatrices();
+
+	// Render Settings
+	glEnable(GL_DEPTH_TEST);							// Enable 3D rendering
+	glEnable(GL_MULTISAMPLE);							// MSAA (MultiSample Anti-Aliasing)
+	glEnable(GL_BLEND);									// enable blending
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// set blending for transparency
+
+	// Init the Shaders, VAOs and VBOs
+	initGround(cells);
+	initWater(cells);
+
+}
+
+// SHADERS /////////////////////////////////////////////////////////////////////
 GLint	Renderer::loadShader(const char* filepath, GLenum shaderType) {
 	// Read shader file
 	std::ifstream file(filepath);
@@ -70,6 +75,78 @@ GLint	Renderer::createShaderProgram(const char* vertexFilePath, const char* frag
 	return shaderProgram;
 }
 
+	// Define vertex attributes
+		// void glVertexAttribPointer(
+		//     GLuint index,          // Attribute index in the shader (layout location)
+		//     GLint size,            // Number of components per vertex attribute
+		//     GLenum type,           // Data type of each component
+		//     GLboolean normalized,  // Whether to normalize the data
+		//     GLsizei stride,        // Byte offset between consecutive attributes
+		//     const void *pointer    // Byte offset to the first component of the attribute in the VBO
+		// );
+void	Renderer::initGround(std::vector<Cell>& cells) {
+	glGenVertexArrays(1, &_groundVAO);	// Create  VAO
+	glGenBuffers(1, &_groundVBO);		// generate VBO
+
+	// Set VBO attributes
+	glBindVertexArray(_groundVAO);		// Bind VAO
+	glBindBuffer(GL_ARRAY_BUFFER, _groundVBO);	// Bind VBO on VAO
+		// Position X Y Z (Location 0)
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+		// Color R G B (Location 1)
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+		// Normal X Y Z (Location 2)
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+	// Send data to the VBO
+	std::vector<float> _ground_vertices = createGroundVertices(cells);
+	glBufferData(GL_ARRAY_BUFFER, _ground_vertices.size() * sizeof(float), _ground_vertices.data(), GL_STATIC_DRAW);
+	
+	// Init Shader
+	_ground_shader = createShaderProgram(GROUND_VERTEX_SHADER, GROUND_FRAGMENT_SHADER);
+	initializeShader(_ground_shader);
+}
+
+void	Renderer::initWater(std::vector<Cell>& cells) {
+	glGenVertexArrays(1, &_waterVAO);	// Create  VAO
+	glBindVertexArray(_waterVAO);		// Bind VAO
+
+	// Set StaticVBO attributes
+	glGenBuffers(1, &_waterStaticVBO);		// generate VBO
+	glBindBuffer(GL_ARRAY_BUFFER, _waterStaticVBO);	// Bind VBO
+		// Position X Y (location 0)
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+		// Color R G B (location 1)
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+	// Send data to the VBO
+	std::vector<float> waterStaticVertices = createWaterStaticVertices();
+	glBufferData(GL_ARRAY_BUFFER, waterStaticVertices.size() * sizeof(float), waterStaticVertices.data(), GL_STATIC_DRAW);
+
+	// Set DynamicVBO attributes
+	glGenBuffers(1, &_waterDynamicVBO);		// generate VBO
+	glBindBuffer(GL_ARRAY_BUFFER, _waterDynamicVBO);	// Bind VBO
+		// Position Z (location 2)
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(2);
+		// Depth (location 3)
+	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(1 * sizeof(float)));
+	glEnableVertexAttribArray(3);
+		// Normal X Y Z (location 4)
+	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(4);
+	// Send data to the VBO
+	std::vector<float> waterDynamicVertices = createWaterDynamicVertices(cells);
+	glBufferData(GL_ARRAY_BUFFER, waterDynamicVertices.size() * sizeof(float), waterDynamicVertices.data(), GL_DYNAMIC_DRAW);
+
+	// Init Shader
+	_water_shader = createShaderProgram(WATER_VERTEX_SHADER, WATER_FRAGMENT_SHADER);
+	initializeShader(_water_shader);
+}
+
 ////////////////////////////////////////////////////
 
 void Renderer::setupCamera(Camera& camera) {
@@ -105,16 +182,6 @@ void Renderer::setupCamera(Camera& camera) {
 	glUseProgram(0);
 }
 
-// glm::vec3	Renderer::calculateNormal(glm::vec3& v0, glm::vec3& v1, glm::vec3& v2) {
-// 	// Calculate two vectors from the triangle's vertices
-// 	glm::vec3 edge1 = v1 - v0;
-// 	glm::vec3 edge2 = v2 - v0;
-
-// 	// Compute the normal using the cross product
-// 	glm::vec3 normal = cross(edge1, edge2);
-// 	return normalize(normal);
-// }
-
 glm::vec3 Renderer::calculateNormal(float up, float down, float left, float right) {
 	float nx = left - right;
 	float ny = down - up;
@@ -126,55 +193,117 @@ glm::vec3 Renderer::calculateNormal(float up, float down, float left, float righ
 
 
 
-// THE CURSED FUNCTION OF WATER HEIGT AND NORMAL
-// 
-//     12--13--14--15      3 y+2  0---X---X---0
-//     |   |   |   |              |   |   |   | 
-//     8---9---10--11      2 y+1  X---NW--NE--X
-//     |   |   |   |              |   |   |   | 
-//     4---5---6---7       1  y   X---SW--SE--X
-//     |   |   |   |              |   |   |   | 
-//     0---1---2---3       0 y-1  0---X---X---0
-//                               x-1  x  x+1 x+2
-//                                0   1   2   3
-std::vector<float>	Renderer::createWaterDynamicVertices(std::vector<Cell>& cells) {
-	std::vector<float>	vertices;
 
-	vertices.reserve((_size - 1) * (_size - 1) * 6 * 4);
+// THE CURSED FUNCTIONS OF HEIGHTS AND NORMALS
+//                         
+//  3   y+2  0---X---X---0 
+//           |   |   |   | 
+//  2   y+1  X---NW--NE--X 
+//           |   |   |   | 
+//  1    y   X---SW--SE--X 
+//           |   |   |   | 
+//  0   y-1  0---X---X---0 
+//          x-1  x  x+1 x+2
+//                         
+//           0   1   2   3 
+
+std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
+	std::vector<float>	vertices; // x1, y1, height1, r1, g1, b1, x2, y2, height2, r2, g2, b2, ...
+	glm::vec3 color1 = glm::vec3(0.0f, 0.7f, 0.0f);	// First triangle color
+	glm::vec3 color2 = glm::vec3(0.0f, 0.7f, 0.0f);	// Second triangle color
+
+	vertices.reserve((_size - 1) * (_size - 1) * 6 * 9); // pre-allocate to gain LOT of time
 
 	for (int y = 0; y < _size - 1; ++y) {
 		for (int x = 0; x < _size - 1; ++x) {
-			// Find quads	(SW, SE, NE, NW), SW is (x, y)
-			// const float height[y][x]
-			const float	height[4][4] = {
-				{
+			// set heights[y][x] in a matrix
+			const float	height[4][4] = { 
+				{	0,
+					cells[index(x+0, std::max(y-1, 0))].getGroundLevel(),
+					cells[index(x+1, std::max(y-1, 0))].getGroundLevel(),
 					0,
+				},
+				{	cells[index(std::max(x-1, 0), y+0)].getGroundLevel(),
+					cells[index(x+0, y+0)].getGroundLevel(),
+					cells[index(x+1, y+0)].getGroundLevel(),
+					cells[index(std::min(x+2, _size-1), y+0)].getGroundLevel(),
+				},
+				{	cells[index(std::max(x-1, 0), y+1)].getGroundLevel(),
+					cells[index(x+0, y+1)].getGroundLevel(),
+					cells[index(x+1, y+1)].getGroundLevel(),
+					cells[index(std::min(x+2, _size-1), y+1)].getGroundLevel(),
+				},
+				{	0,
+					cells[index(x+0, std::min(y+2, _size-1))].getGroundLevel(),
+					cells[index(x+1, std::min(y+2, _size-1))].getGroundLevel(),
+					0,
+				}
+			};
+
+			// Calculate normals with the neighbors heights (up, down, left, right)
+			const glm::vec3	normal[4] = {
+				calculateNormal(height[2][1], height[0][1], height[1][0], height[1][2]), // SW
+				calculateNormal(height[2][2], height[0][2], height[1][1], height[1][3]), // SE
+				calculateNormal(height[3][2], height[1][2], height[2][1], height[2][3]), // NE
+				calculateNormal(height[3][1], height[1][1], height[2][0], height[2][2]), // NW
+			};
+
+			// first triangle : SW -> SE -> NE
+			pushVertex({x, y, height[1][1]}, vertices);
+			pushVertex(color1, vertices);
+			pushVertex(normal[0], vertices);
+			pushVertex({x+1, y, height[1][2]}, vertices);
+			pushVertex(color1, vertices);
+			pushVertex(normal[1], vertices);
+			pushVertex({x+1, y+1, height[2][2]}, vertices);
+			pushVertex(color1, vertices);
+			pushVertex(normal[2], vertices);
+			// second triangle : NE -> NW -> SW
+			pushVertex({x+1, y+1, height[2][2]}, vertices);
+			pushVertex(color2, vertices);
+			pushVertex(normal[2], vertices);
+			pushVertex({x, y+1, height[2][1]}, vertices);
+			pushVertex(color2, vertices);
+			pushVertex(normal[3], vertices);
+			pushVertex({x, y, height[1][1]}, vertices);
+			pushVertex(color2, vertices);
+			pushVertex(normal[0], vertices);
+		}
+	}
+	return vertices;
+}
+
+std::vector<float>	Renderer::createWaterDynamicVertices(std::vector<Cell>& cells) {
+	std::vector<float>	vertices;
+
+	vertices.reserve((_size - 1) * (_size - 1) * 6 * 5);
+
+	for (int y = 0; y < _size - 1; ++y) {
+		for (int x = 0; x < _size - 1; ++x) {
+			// set heights[y][x] in a matrix
+			const float	height[4][4] = {
+				{	0,
 					cells[index(x + 0, std::max(y - 1, 0))].getWaterVertexHeight(),
 					cells[index(x + 1, std::max(y - 1, 0))].getWaterVertexHeight(),
 					0,
 				},
-				{
-					cells[index(std::max(x - 1, 0), y + 0)].getWaterVertexHeight(),
+				{	cells[index(std::max(x - 1, 0), y + 0)].getWaterVertexHeight(),
 					cells[index(x + 0, y + 0)].getWaterVertexHeight(),
 					cells[index(x + 1, y + 0)].getWaterVertexHeight(),
 					cells[index(std::min(x + 2, _size - 1), y + 0)].getWaterVertexHeight(),
 				},
-				{
-					cells[index(std::max(x - 1, 0), y + 1)].getWaterVertexHeight(),
+				{	cells[index(std::max(x - 1, 0), y + 1)].getWaterVertexHeight(),
 					cells[index(x + 0, y + 1)].getWaterVertexHeight(),
 					cells[index(x + 1, y + 1)].getWaterVertexHeight(),
 					cells[index(std::min(x + 2, _size - 1), y + 1)].getWaterVertexHeight(),
 				},
-				{
-					0,
+				{	0,
 					cells[index(x + 0, std::min(y + 2, _size - 1))].getWaterVertexHeight(),
 					cells[index(x + 1, std::min(y + 2, _size - 1))].getWaterVertexHeight(),
 					0,
 				}
 			};
 
-			// SW, SE, NE, NW
-				// up, down, left, right
 			const glm::vec3	normal[4] = {
 				calculateNormal(height[2][1], height[0][1], height[1][0], height[1][2]), // SW
 				calculateNormal(height[2][2], height[0][2], height[1][1], height[1][3]), // SE
@@ -189,7 +318,7 @@ std::vector<float>	Renderer::createWaterDynamicVertices(std::vector<Cell>& cells
 					cells[index(x, y + 1)].getWaterLevel(),
 			};
 
-			// first triangle : 0 -> 1 -> 2
+			// first triangle : SW -> SE -> NE
 			vertices.push_back(height[1][1]);
 			vertices.push_back(depth[0]);
 			pushVertex(normal[0], vertices);
@@ -199,7 +328,7 @@ std::vector<float>	Renderer::createWaterDynamicVertices(std::vector<Cell>& cells
 			vertices.push_back(height[2][2]);
 			vertices.push_back(depth[2]);
 			pushVertex(normal[2], vertices);
-			// second triangle : 2 -> 3 -> 0
+			// second triangle : NE -> NW -> SW
 			vertices.push_back(height[2][2]);
 			vertices.push_back(depth[2]);
 			pushVertex(normal[2], vertices);
@@ -208,66 +337,56 @@ std::vector<float>	Renderer::createWaterDynamicVertices(std::vector<Cell>& cells
 			pushVertex(normal[3], vertices);
 			vertices.push_back(height[1][1]);
 			vertices.push_back(depth[0]);
-			pushVertex(normal[0], vertices);		}
+			pushVertex(normal[0], vertices);
+		}
 	}
 	return vertices;
 }
 
-void	Renderer::pushQuadVertex(s_vec3 pos, s_vec3 color, std::vector<float>& vertices) {
-	vertices.push_back(pos.x);
-	vertices.push_back(pos.y);
-	vertices.push_back(pos.z);
-	vertices.push_back(color.x);	// r
-	vertices.push_back(color.y);	// g
-	vertices.push_back(color.z);	// b
-}
-
-void	Renderer::pushQuadVertex(s_vec2 pos, s_vec3 color, std::vector<float>& vertices) {
-	vertices.push_back(pos.x);
-	vertices.push_back(pos.y);
-	vertices.push_back(color.x);	// r
-	vertices.push_back(color.y);	// g
-	vertices.push_back(color.z);	// b
-}
-
-void	Renderer::pushVertex(glm::vec3 vertex, std::vector<float>& dest) {
-	dest.push_back(vertex.x);
-	dest.push_back(vertex.y);
-	dest.push_back(vertex.z);
-}
-
 std::vector<float>	Renderer::createWaterStaticVertices() {
-
 	std::vector<float>	vertices;
+	glm::vec3 color1 = glm::normalize(glm::vec3(34.0, 197.0, 255.0));
+	glm::vec3 color2 = glm::normalize(glm::vec3(34.0, 197.0, 255.0));
 
-	// pre-allocate to gain time
 	vertices.reserve((_size - 1) * (_size - 1) * 6 * 5);
-	s_vec3 color1 = {0.0, 0.0, 1.0};
-	s_vec3 color2 = {0.0, 0.0, 1.0};
 
-	// FILL THE VERTICES ////////////
 	for (int y = 0; y < _size - 1; ++y) {
 		for (int x = 0; x < _size - 1; ++x) {
-			// Find quads	(SW, SE, NE, NW)
-			const s_vec2 quad[4] = {
+			const glm::vec2 pos[4] = {
 				{static_cast<float>(x), static_cast<float>(y)},
 				{static_cast<float>(x + 1), static_cast<float>(y)},
 				{static_cast<float>(x + 1), static_cast<float>(y + 1)},
 				{static_cast<float>(x), static_cast<float>(y + 1)}
 			};
 
-			// first triangle : 0 -> 1 -> 2
-			pushQuadVertex(quad[0], color1, vertices);
-			pushQuadVertex(quad[1], color1, vertices);
-			pushQuadVertex(quad[2], color1, vertices);
-
-			// second triangle : 2 -> 3 -> 0
-			pushQuadVertex(quad[2], color2, vertices);
-			pushQuadVertex(quad[3], color2, vertices);
-			pushQuadVertex(quad[0], color2, vertices);
+			// first triangle : SW -> SE -> NE
+			pushVertex(pos[0], vertices);
+			pushVertex(color1, vertices);
+			pushVertex(pos[1], vertices);
+			pushVertex(color1, vertices);
+			pushVertex(pos[2], vertices);
+			pushVertex(color1, vertices);
+			// second triangle : NE -> NW -> SW
+			pushVertex(pos[2], vertices);
+			pushVertex(color2, vertices);
+			pushVertex(pos[3], vertices);
+			pushVertex(color2, vertices);
+			pushVertex(pos[0], vertices);
+			pushVertex(color2, vertices);
 		}
 	}
 	return vertices;
+}
+
+void	Renderer::pushVertex(glm::vec2 vertex, std::vector<float>& dest) {
+	dest.push_back(vertex.x);
+	dest.push_back(vertex.y);
+}
+
+void	Renderer::pushVertex(glm::vec3 vertex, std::vector<float>& dest) {
+	dest.push_back(vertex.x);
+	dest.push_back(vertex.y);
+	dest.push_back(vertex.z);
 }
 
 // std::vector<float> Renderer::createWaterVertices(std::vector<Cell>& cells) {
@@ -331,46 +450,13 @@ std::vector<float>	Renderer::createWaterStaticVertices() {
 // }
 
 
-std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
-	std::vector<float>	vertices; // x1, y1, height1, r1, g1, b1, x2, y2, height2, r2, g2, b2, ...
-
-	// pre-allocate to gain time
-	vertices.reserve((_size - 1) * (_size - 1) * 6 * 6);
-	s_vec3 color1 = {0.0, 0.7, 0.0};
-	s_vec3 color2 = {0.0, 0.5, 0.0};
-
-	for (int y = 0; y < _size - 1; ++y) {
-		for (int x = 0; x < _size - 1; ++x) {
-			// Find quads	(SW, SE, NE, NW)
-			const s_vec3 quad[4] = {
-				{static_cast<float>(x), static_cast<float>(y), cells[index(x, y)].getGroundLevel()},
-				{static_cast<float>(x + 1), static_cast<float>(y),cells[index(x + 1, y)].getGroundLevel()},
-				{static_cast<float>(x + 1), static_cast<float>(y + 1),cells[index(x + 1, y + 1)].getGroundLevel()},
-				{static_cast<float>(x), static_cast<float>(y + 1),cells[index(x, y + 1)].getGroundLevel()},
-			};
-
-			// first triangle : 0 -> 1 -> 2
-			pushQuadVertex(quad[0], color1, vertices);
-			pushQuadVertex(quad[1], color1, vertices);
-			pushQuadVertex(quad[2], color1, vertices);
-
-			// second triangle : 2 -> 3 -> 0
-			pushQuadVertex(quad[2], color2, vertices);
-			pushQuadVertex(quad[3], color2, vertices);
-			pushQuadVertex(quad[0], color2, vertices);
-		}
-	}
-	return vertices;
-}
-
 int	Renderer::index(int x, int y) {
 	return x + y * _size;
 }
 
 void	Renderer::initializeShader(GLint shader) {
-
 	glUseProgram(shader);
-	
+
 		// Projection
 	GLint	projectionLoc = glGetUniformLocation(shader, "projection");
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(_projection));
@@ -405,105 +491,12 @@ void	Renderer::initMatrices() {
 	_model = glm::mat4(1.0f);
 }
 
-	// Define vertex attributes
-		// void glVertexAttribPointer(
-		//     GLuint index,          // Attribute index in the shader (layout location)
-		//     GLint size,            // Number of components per vertex attribute
-		//     GLenum type,           // Data type of each component
-		//     GLboolean normalized,  // Whether to normalize the data
-		//     GLsizei stride,        // Byte offset between consecutive attributes
-		//     const void *pointer    // Byte offset to the first component of the attribute in the VBO
-		// );
-void	Renderer::initGround(std::vector<Cell>& cells) {
-	glGenVertexArrays(1, &_groundVAO);	// Create  VAO
-	glGenBuffers(1, &_groundVBO);		// generate VBO
 
-	glBindVertexArray(_groundVAO);		// Bind VAO
-	glBindBuffer(GL_ARRAY_BUFFER, _groundVBO);	// Bind VBO on VAO
-
-	// Define attributes
-		// Position X Y Z (Location 0)
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-		// Color R G B (Location 1)
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-		// Normal X Y Z (Location 2)
-
-		// Send data to the VBO
-	std::vector<float> _ground_vertices = createGroundVertices(cells);
-	glBufferData(GL_ARRAY_BUFFER, _ground_vertices.size() * sizeof(float), _ground_vertices.data(), GL_STATIC_DRAW);
-	
-	// Init Shader
-	_ground_shader = createShaderProgram(GROUND_VERTEX_SHADER, GROUND_FRAGMENT_SHADER);
-	initializeShader(_ground_shader);
-}
-
-void	Renderer::initWater(std::vector<Cell>& cells) {
-	glGenVertexArrays(1, &_waterVAO);	// Create  VAO
-	glBindVertexArray(_waterVAO);		// Bind VAO
-
-
-	// STATIC VBO //
-	glGenBuffers(1, &_waterStaticVBO);		// generate VBO
-	glBindBuffer(GL_ARRAY_BUFFER, _waterStaticVBO);	// Bind VBO
-		// Position X Y (location 0)
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-		// Color R G B (location 1)
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-		// Send initial data to the VBO
-	std::vector<float> waterStaticVertices = createWaterStaticVertices();
-	glBufferData(GL_ARRAY_BUFFER, waterStaticVertices.size() * sizeof(float), waterStaticVertices.data(), GL_STATIC_DRAW);
-
-
-	// DYNAMIC VBO //
-	glGenBuffers(1, &_waterDynamicVBO);		// generate VBO
-	glBindBuffer(GL_ARRAY_BUFFER, _waterDynamicVBO);	// Bind VBO
-		// Position Z (location 2)
-	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(2);
-		// Depth (location 3)
-	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(1 * sizeof(float)));
-	glEnableVertexAttribArray(3);
-		// Normal X Y Z (location 4)
-	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
-	glEnableVertexAttribArray(4);
-
-	std::vector<float> waterDynamicVertices = createWaterDynamicVertices(cells);
-	glBufferData(GL_ARRAY_BUFFER, waterDynamicVertices.size() * sizeof(float), waterDynamicVertices.data(), GL_DYNAMIC_DRAW);
-
-
-	// Init Shader
-	_water_shader = createShaderProgram(WATER_VERTEX_SHADER, WATER_FRAGMENT_SHADER);
-	initializeShader(_water_shader);
-
-}
-
-void	Renderer::init(std::vector<Cell>& cells, int size) {
-	_size = size;
-
-	// Initialize matrices
-	initMatrices();
-
-	// Render Settings
-	glEnable(GL_DEPTH_TEST);							// Enable 3D rendering
-	glEnable(GL_MULTISAMPLE);							// MSAA (MultiSample Anti-Aliasing)
-	glEnable(GL_BLEND);									// enable blending
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// set blending for transparency
-
-	initGround(cells);
-	initWater(cells);
-
-	
-}
 
 void	Renderer::render(WaterSurface& surface, Camera& camera) {
+	int	vertexCount = (_size - 1) * (_size - 1) * 6;
 
 	setupCamera(camera);
-
-	int	vertexCount = (_size - 1) * (_size - 1) * 6;
 
 	// Draw Ground
 	glUseProgram(_ground_shader);
@@ -518,19 +511,7 @@ void	Renderer::render(WaterSurface& surface, Camera& camera) {
 	glBufferData(GL_ARRAY_BUFFER, waterDynamicVertices.size() * sizeof(float), waterDynamicVertices.data(), GL_DYNAMIC_DRAW);
 	glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 
-
-		// Update the dynamic water VBO
-	// glBindBuffer(GL_ARRAY_BUFFER, _waterStaticVBO);
-	// std::vector<float> water_height = updateWaterHeightVertices(surface.getCells());
-	// const size_t	stride = 6 * sizeof(float);
-	// const size_t	offset = 2 * sizeof(float);
-	// glBufferSubData(GL_ARRAY_BUFFER, offset, vertexCount * sizeof(float), water_height.data());
-
-	// std::vector<float> water_vertices = createWaterVertices(surface.getCells());
-	// glBufferData(GL_ARRAY_BUFFER, water_vertices.size() * sizeof(float), water_vertices.data(), GL_DYNAMIC_DRAW);
-	// glDrawArrays(GL_TRIANGLES, 0, vertexCount);
-
-
+	// Check OpenGL errors
 	GLenum err = glGetError();
 	if (err != GL_NO_ERROR) {
 		std::cerr << "OpenGL error: " << err << std::endl;
