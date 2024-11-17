@@ -146,6 +146,12 @@ std::vector<float>	Renderer::createWaterDynamicVertices(std::vector<Cell>& cells
 		// std::cout << "   " << normal1.y << std::endl;
 		// std::cout << "   " << normal1.z << std::endl;
 
+
+		// std::cout << "normal2 [" << x << "][" << y << "] = " << std::endl;
+		// std::cout << "   " << normal2.x << std::endl;
+		// std::cout << "   " << normal2.y << std::endl;
+		// std::cout << "   " << normal2.z << std::endl;
+
 			// first triangle : 0 -> 1 -> 2
 			vertices.push_back(height[0]);
 			vertices.push_back(normal1.x);
@@ -205,8 +211,8 @@ std::vector<float>	Renderer::createWaterStaticVertices() {
 
 	// pre-allocate to gain time
 	vertices.reserve((_size - 1) * (_size - 1) * 6 * 5);
-	s_vec3 color1 = {0.0, 0.0, 0.7};
-	s_vec3 color2 = {0.0, 0.0, 0.5};
+	s_vec3 color1 = {0.0, 0.0, 1.0};
+	s_vec3 color2 = {0.0, 0.0, 1.0};
 
 	// FILL THE VERTICES ////////////
 	for (int y = 0; y < _size - 1; ++y) {
@@ -425,7 +431,7 @@ void	Renderer::initWater(std::vector<Cell>& cells) {
 	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(2);
 		// Normal X Y Z (location 3)
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)1);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(1 * sizeof(float)));
 	glEnableVertexAttribArray(3);
 
 	std::vector<float> waterDynamicVertices = createWaterDynamicVertices(cells);
