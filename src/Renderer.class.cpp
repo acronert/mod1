@@ -105,17 +105,38 @@ void Renderer::setupCamera(Camera& camera) {
 	glUseProgram(0);
 }
 
-glm::vec3	Renderer::calculateNormal(glm::vec3& v0, glm::vec3& v1, glm::vec3& v2) {
-	// Calculate two vectors from the triangle's vertices
-	glm::vec3 edge1 = v1 - v0;
-	glm::vec3 edge2 = v2 - v0;
+// glm::vec3	Renderer::calculateNormal(glm::vec3& v0, glm::vec3& v1, glm::vec3& v2) {
+// 	// Calculate two vectors from the triangle's vertices
+// 	glm::vec3 edge1 = v1 - v0;
+// 	glm::vec3 edge2 = v2 - v0;
 
-	// Compute the normal using the cross product
-	glm::vec3 normal = cross(edge1, edge2);
-	return normalize(normal);
+// 	// Compute the normal using the cross product
+// 	glm::vec3 normal = cross(edge1, edge2);
+// 	return normalize(normal);
+// }
+
+glm::vec3 Renderer::calculateNormal(float up, float down, float left, float right) {
+	float nx = left - right;
+	float ny = down - up;
+	float nz = 2.0f;
+
+	glm::vec3 normal(nx, ny, nz);
+	return glm::normalize(normal);
 }
 
-// height and normal
+
+
+// THE CURSED FUNCTION OF WATER HEIGT AND NORMAL
+// 
+//     12--13--14--15      3 y+2  0---X---X---0
+//     |   |   |   |              |   |   |   | 
+//     8---9---10--11      2 y+1  X---NW--NE--X
+//     |   |   |   |              |   |   |   | 
+//     4---5---6---7       1  y   X---SW--SE--X
+//     |   |   |   |              |   |   |   | 
+//     0---1---2---3       0 y-1  0---X---X---0
+//                               x-1  x  x+1 x+2
+//                                0   1   2   3
 std::vector<float>	Renderer::createWaterDynamicVertices(std::vector<Cell>& cells) {
 	std::vector<float>	vertices;
 
@@ -123,67 +144,71 @@ std::vector<float>	Renderer::createWaterDynamicVertices(std::vector<Cell>& cells
 
 	for (int y = 0; y < _size - 1; ++y) {
 		for (int x = 0; x < _size - 1; ++x) {
-			// Find quads	(SW, SE, NE, NW)
-			const float height[4] = {
-				{cells[index(x, y)].getWaterVertexHeight()},
-				{cells[index(x + 1, y)].getWaterVertexHeight()},
-				{cells[index(x + 1, y + 1)].getWaterVertexHeight()},
-				{cells[index(x, y + 1)].getWaterVertexHeight()},
+			// Find quads	(SW, SE, NE, NW), SW is (x, y)
+			// const float height[y][x]
+			const float	height[4][4] = {
+				{
+					0,
+					cells[index(x + 0, std::max(y - 1, 0))].getWaterVertexHeight(),
+					cells[index(x + 1, std::max(y - 1, 0))].getWaterVertexHeight(),
+					0,
+				},
+				{
+					cells[index(std::max(x - 1, 0), y + 0)].getWaterVertexHeight(),
+					cells[index(x + 0, y + 0)].getWaterVertexHeight(),
+					cells[index(x + 1, y + 0)].getWaterVertexHeight(),
+					cells[index(std::min(x + 2, _size - 1), y + 0)].getWaterVertexHeight(),
+				},
+				{
+					cells[index(std::max(x - 1, 0), y + 1)].getWaterVertexHeight(),
+					cells[index(x + 0, y + 1)].getWaterVertexHeight(),
+					cells[index(x + 1, y + 1)].getWaterVertexHeight(),
+					cells[index(std::min(x + 2, _size - 1), y + 1)].getWaterVertexHeight(),
+				},
+				{
+					0,
+					cells[index(x + 0, std::min(y + 2, _size - 1))].getWaterVertexHeight(),
+					cells[index(x + 1, std::min(y + 2, _size - 1))].getWaterVertexHeight(),
+					0,
+				}
 			};
-			glm::vec3 position[4] = {
-				{static_cast<float>(x), static_cast<float>(y), height[0]},
-				{static_cast<float>(x + 1), static_cast<float>(y), height[1]},
-				{static_cast<float>(x + 1), static_cast<float>(y + 1), height[2]},
-				{static_cast<float>(x), static_cast<float>(y + 1), height[3]},
+
+			// SW, SE, NE, NW
+				// up, down, left, right
+			const glm::vec3	normal[4] = {
+				calculateNormal(height[2][1], height[0][1], height[1][0], height[1][2]), // SW
+				calculateNormal(height[2][2], height[0][2], height[1][1], height[1][3]), // SE
+				calculateNormal(height[3][2], height[1][2], height[2][1], height[2][3]), // NE
+				calculateNormal(height[3][1], height[1][1], height[2][0], height[2][2]), // NW
 			};
 
-			// Calculate normal (cross product of 2 edges)
-			glm::vec3 normal1 = calculateNormal(position[0], position[1], position[2]);
-			glm::vec3 normal2 = calculateNormal(position[2], position[3], position[0]);
-
-		// std::cout << "normal1 [" << x << "][" << y << "] = " << std::endl;
-		// std::cout << "   " << normal1.x << std::endl;
-		// std::cout << "   " << normal1.y << std::endl;
-		// std::cout << "   " << normal1.z << std::endl;
-
-
-		// std::cout << "normal2 [" << x << "][" << y << "] = " << std::endl;
-		// std::cout << "   " << normal2.x << std::endl;
-		// std::cout << "   " << normal2.y << std::endl;
-		// std::cout << "   " << normal2.z << std::endl;
+			const float	depth[4] = {
+					cells[index(x, y)].getWaterLevel(),
+					cells[index(x + 1, y)].getWaterLevel(),
+					cells[index(x + 1, y + 1)].getWaterLevel(),
+					cells[index(x, y + 1)].getWaterLevel(),
+			};
 
 			// first triangle : 0 -> 1 -> 2
-			vertices.push_back(height[0]);
-			vertices.push_back(normal1.x);
-			vertices.push_back(normal1.y);
-			vertices.push_back(normal1.z);
-
-			vertices.push_back(height[1]);
-			vertices.push_back(normal1.x);
-			vertices.push_back(normal1.y);
-			vertices.push_back(normal1.z);
-
-			vertices.push_back(height[2]);
-			vertices.push_back(normal1.x);
-			vertices.push_back(normal1.y);
-			vertices.push_back(normal1.z);
-
+			vertices.push_back(height[1][1]);
+			vertices.push_back(depth[0]);
+			pushVertex(normal[0], vertices);
+			vertices.push_back(height[1][2]);
+			vertices.push_back(depth[1]);
+			pushVertex(normal[1], vertices);
+			vertices.push_back(height[2][2]);
+			vertices.push_back(depth[2]);
+			pushVertex(normal[2], vertices);
 			// second triangle : 2 -> 3 -> 0
-			vertices.push_back(height[2]);
-			vertices.push_back(normal2.x);
-			vertices.push_back(normal2.y);
-			vertices.push_back(normal2.z);
-
-			vertices.push_back(height[3]);
-			vertices.push_back(normal2.x);
-			vertices.push_back(normal2.y);
-			vertices.push_back(normal2.z);
-
-			vertices.push_back(height[0]);
-			vertices.push_back(normal2.x);
-			vertices.push_back(normal2.y);
-			vertices.push_back(normal2.z);
-		}
+			vertices.push_back(height[2][2]);
+			vertices.push_back(depth[2]);
+			pushVertex(normal[2], vertices);
+			vertices.push_back(height[2][1]);
+			vertices.push_back(depth[3]);
+			pushVertex(normal[3], vertices);
+			vertices.push_back(height[1][1]);
+			vertices.push_back(depth[0]);
+			pushVertex(normal[0], vertices);		}
 	}
 	return vertices;
 }
@@ -203,6 +228,12 @@ void	Renderer::pushQuadVertex(s_vec2 pos, s_vec3 color, std::vector<float>& vert
 	vertices.push_back(color.x);	// r
 	vertices.push_back(color.y);	// g
 	vertices.push_back(color.z);	// b
+}
+
+void	Renderer::pushVertex(glm::vec3 vertex, std::vector<float>& dest) {
+	dest.push_back(vertex.x);
+	dest.push_back(vertex.y);
+	dest.push_back(vertex.z);
 }
 
 std::vector<float>	Renderer::createWaterStaticVertices() {
@@ -390,11 +421,14 @@ void	Renderer::initGround(std::vector<Cell>& cells) {
 	glBindVertexArray(_groundVAO);		// Bind VAO
 	glBindBuffer(GL_ARRAY_BUFFER, _groundVBO);	// Bind VBO on VAO
 
-		// Define attributes
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0); // Position
-	glEnableVertexAttribArray(0);	// Location 0
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))); // Color
-	glEnableVertexAttribArray(1);	// Location 1
+	// Define attributes
+		// Position X Y Z (Location 0)
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+		// Color R G B (Location 1)
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+		// Normal X Y Z (Location 2)
 
 		// Send data to the VBO
 	std::vector<float> _ground_vertices = createGroundVertices(cells);
@@ -428,11 +462,14 @@ void	Renderer::initWater(std::vector<Cell>& cells) {
 	glGenBuffers(1, &_waterDynamicVBO);		// generate VBO
 	glBindBuffer(GL_ARRAY_BUFFER, _waterDynamicVBO);	// Bind VBO
 		// Position Z (location 2)
-	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(2);
-		// Normal X Y Z (location 3)
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(1 * sizeof(float)));
+		// Depth (location 3)
+	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(1 * sizeof(float)));
 	glEnableVertexAttribArray(3);
+		// Normal X Y Z (location 4)
+	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(4);
 
 	std::vector<float> waterDynamicVertices = createWaterDynamicVertices(cells);
 	glBufferData(GL_ARRAY_BUFFER, waterDynamicVertices.size() * sizeof(float), waterDynamicVertices.data(), GL_DYNAMIC_DRAW);

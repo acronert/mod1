@@ -88,8 +88,10 @@ class Renderer
 		void	pushQuadVertex(s_vec3 quad, s_vec3 color, std::vector<float>& vertices);
 		void	pushQuadVertex(s_vec2 quad, s_vec3 color, std::vector<float>& vertices);
 		void	initializeShader(GLint shader);
+		void	pushVertex(glm::vec3 vertex, std::vector<float>& dest);
 
-		glm::vec3	calculateNormal(glm::vec3& v0, glm::vec3& v1, glm::vec3& v2);
+		// glm::vec3	calculateNormal(glm::vec3& v0, glm::vec3& v1, glm::vec3& v2);
+		glm::vec3	calculateNormal(float up, float down, float left, float right);
 
 
 		int		index(int x, int y);
