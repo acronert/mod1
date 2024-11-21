@@ -89,6 +89,8 @@ class Renderer
 		void	pushVertex(glm::vec3 vertex, std::vector<float>& dest);
 		void	pushVertex(glm::vec2 vertex, std::vector<float>& dest);
 
+		std::array<std::array<float, 4>, 4> getHeightMatrix(std::vector<Cell>& cells, int x, int y, float (Cell::*f)());
+
 		// glm::vec3	calculateNormal(glm::vec3& v0, glm::vec3& v1, glm::vec3& v2);
 		glm::vec3	calculateNormal(float up, float down, float left, float right);
 

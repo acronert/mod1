@@ -3,35 +3,29 @@
 Renderer::Renderer() {}
 
 Renderer::~Renderer() {
-	// Cleanup
-		glDeleteVertexArrays(1, &_groundVAO);
-		glDeleteVertexArrays(1, &_waterVAO);
-		glDeleteBuffers(1, &_groundVBO);
-		glDeleteBuffers(1, &_waterStaticVBO);
-		glDeleteBuffers(1, &_waterDynamicVBO);
-		glDeleteProgram(_ground_shader);
-		glDeleteProgram(_water_shader);
+	glDeleteVertexArrays(1, &_groundVAO);
+	glDeleteVertexArrays(1, &_waterVAO);
+	glDeleteBuffers(1, &_groundVBO);
+	glDeleteBuffers(1, &_waterStaticVBO);
+	glDeleteBuffers(1, &_waterDynamicVBO);
+	glDeleteProgram(_ground_shader);
+	glDeleteProgram(_water_shader);
 }
 
 void	Renderer::init(std::vector<Cell>& cells, int size) {
 	_size = size;
 
-	// Initialize matrices
 	initMatrices();
 
-	// Render Settings
 	glEnable(GL_DEPTH_TEST);							// Enable 3D rendering
 	glEnable(GL_MULTISAMPLE);							// MSAA (MultiSample Anti-Aliasing)
 	glEnable(GL_BLEND);									// enable blending
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// set blending for transparency
 
-	// Init the Shaders, VAOs and VBOs
 	initGround(cells);
 	initWater(cells);
-
 }
 
-// SHADERS /////////////////////////////////////////////////////////////////////
 GLint	Renderer::loadShader(const char* filepath, GLenum shaderType) {
 	// Read shader file
 	std::ifstream file(filepath);
@@ -147,8 +141,6 @@ void	Renderer::initWater(std::vector<Cell>& cells) {
 	initializeShader(_water_shader);
 }
 
-////////////////////////////////////////////////////
-
 void Renderer::setupCamera(Camera& camera) {
 	float yawRad = camera.yaw * M_PI / 180.0f;
 	float pitchRad = camera.pitch * M_PI / 180.0f;
@@ -191,24 +183,8 @@ glm::vec3 Renderer::calculateNormal(float up, float down, float left, float righ
 	return glm::normalize(normal);
 }
 
-
-
-
-// THE CURSED FUNCTIONS OF HEIGHTS AND NORMALS
-//                         
-//  3   y+2  0---X---X---0 
-//           |   |   |   | 
-//  2   y+1  X---NW--NE--X 
-//           |   |   |   | 
-//  1    y   X---SW--SE--X 
-//           |   |   |   | 
-//  0   y-1  0---X---X---0 
-//          x-1  x  x+1 x+2
-//                         
-//           0   1   2   3 
-
 std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
-	std::vector<float>	vertices; // x1, y1, height1, r1, g1, b1, x2, y2, height2, r2, g2, b2, ...
+	std::vector<float>	vertices;
 	glm::vec3 color1 = glm::vec3(0.0f, 0.7f, 0.0f);	// First triangle color
 	glm::vec3 color2 = glm::vec3(0.0f, 0.7f, 0.0f);	// Second triangle color
 
@@ -217,28 +193,7 @@ std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
 	for (int y = 0; y < _size - 1; ++y) {
 		for (int x = 0; x < _size - 1; ++x) {
 			// set heights[y][x] in a matrix
-			const float	height[4][4] = { 
-				{	0,
-					cells[index(x+0, std::max(y-1, 0))].getGroundLevel(),
-					cells[index(x+1, std::max(y-1, 0))].getGroundLevel(),
-					0,
-				},
-				{	cells[index(std::max(x-1, 0), y+0)].getGroundLevel(),
-					cells[index(x+0, y+0)].getGroundLevel(),
-					cells[index(x+1, y+0)].getGroundLevel(),
-					cells[index(std::min(x+2, _size-1), y+0)].getGroundLevel(),
-				},
-				{	cells[index(std::max(x-1, 0), y+1)].getGroundLevel(),
-					cells[index(x+0, y+1)].getGroundLevel(),
-					cells[index(x+1, y+1)].getGroundLevel(),
-					cells[index(std::min(x+2, _size-1), y+1)].getGroundLevel(),
-				},
-				{	0,
-					cells[index(x+0, std::min(y+2, _size-1))].getGroundLevel(),
-					cells[index(x+1, std::min(y+2, _size-1))].getGroundLevel(),
-					0,
-				}
-			};
+			std::array<std::array<float, 4>, 4> height = getHeightMatrix(cells, x, y, &Cell::getGroundLevel);
 
 			// Calculate normals with the neighbors heights (up, down, left, right)
 			const glm::vec3	normal[4] = {
@@ -258,6 +213,7 @@ std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
 			pushVertex({x+1, y+1, height[2][2]}, vertices);
 			pushVertex(color1, vertices);
 			pushVertex(normal[2], vertices);
+
 			// second triangle : NE -> NW -> SW
 			pushVertex({x+1, y+1, height[2][2]}, vertices);
 			pushVertex(color2, vertices);
@@ -273,6 +229,40 @@ std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
 	return vertices;
 }
 
+// THE CURSED FUNCTIONS OF HEIGHTS AND NORMALS
+//                         
+//  3   y+2  0---X---X---0 
+//           |   |   |   | 
+//  2   y+1  X---NW--NE--X 
+//           |   |   |   | 
+//  1    y   X---SW--SE--X 
+//           |   |   |   | 
+//  0   y-1  0---X---X---0 
+//          x-1  x  x+1 x+2
+//                         
+//           0   1   2   3 
+std::array<std::array<float, 4>, 4> Renderer::getHeightMatrix(
+	std::vector<Cell>& cells, int x, int y, float (Cell::*f)()) {
+	// Define a 4x4 array initialized to zeros
+	std::array<std::array<float, 4>, 4> matrix = {};
+
+	// Fill the matrix [y][x]
+	matrix[0][1] = (cells[index(x + 0, std::max(y - 1, 0))].*f)();
+	matrix[0][2] = (cells[index(x + 1, std::max(y - 1, 0))].*f)();
+	matrix[1][0] = (cells[index(std::max(x - 1, 0), y + 0)].*f)();
+	matrix[1][1] = (cells[index(x + 0, y + 0)].*f)();
+	matrix[1][2] = (cells[index(x + 1, y + 0)].*f)();
+	matrix[1][3] = (cells[index(std::min(x + 2, _size - 1), y + 0)].*f)();
+	matrix[2][0] = (cells[index(std::max(x - 1, 0), y + 1)].*f)();
+	matrix[2][1] = (cells[index(x + 0, y + 1)].*f)();
+	matrix[2][2] = (cells[index(x + 1, y + 1)].*f)();
+	matrix[2][3] = (cells[index(std::min(x + 2, _size - 1), y + 1)].*f)();
+	matrix[3][1] = (cells[index(x + 0, std::min(y + 2, _size - 1))].*f)();
+	matrix[3][2] = (cells[index(x + 1, std::min(y + 2, _size - 1))].*f)();
+
+	return matrix;
+}
+
 std::vector<float>	Renderer::createWaterDynamicVertices(std::vector<Cell>& cells) {
 	std::vector<float>	vertices;
 
@@ -281,28 +271,7 @@ std::vector<float>	Renderer::createWaterDynamicVertices(std::vector<Cell>& cells
 	for (int y = 0; y < _size - 1; ++y) {
 		for (int x = 0; x < _size - 1; ++x) {
 			// set heights[y][x] in a matrix
-			const float	height[4][4] = {
-				{	0,
-					cells[index(x + 0, std::max(y - 1, 0))].getWaterVertexHeight(),
-					cells[index(x + 1, std::max(y - 1, 0))].getWaterVertexHeight(),
-					0,
-				},
-				{	cells[index(std::max(x - 1, 0), y + 0)].getWaterVertexHeight(),
-					cells[index(x + 0, y + 0)].getWaterVertexHeight(),
-					cells[index(x + 1, y + 0)].getWaterVertexHeight(),
-					cells[index(std::min(x + 2, _size - 1), y + 0)].getWaterVertexHeight(),
-				},
-				{	cells[index(std::max(x - 1, 0), y + 1)].getWaterVertexHeight(),
-					cells[index(x + 0, y + 1)].getWaterVertexHeight(),
-					cells[index(x + 1, y + 1)].getWaterVertexHeight(),
-					cells[index(std::min(x + 2, _size - 1), y + 1)].getWaterVertexHeight(),
-				},
-				{	0,
-					cells[index(x + 0, std::min(y + 2, _size - 1))].getWaterVertexHeight(),
-					cells[index(x + 1, std::min(y + 2, _size - 1))].getWaterVertexHeight(),
-					0,
-				}
-			};
+			std::array<std::array<float, 4>, 4> height = getHeightMatrix(cells, x, y, &Cell::getWaterVertexHeight);
 
 			const glm::vec3	normal[4] = {
 				calculateNormal(height[2][1], height[0][1], height[1][0], height[1][2]), // SW
@@ -328,6 +297,7 @@ std::vector<float>	Renderer::createWaterDynamicVertices(std::vector<Cell>& cells
 			vertices.push_back(height[2][2]);
 			vertices.push_back(depth[2]);
 			pushVertex(normal[2], vertices);
+
 			// second triangle : NE -> NW -> SW
 			vertices.push_back(height[2][2]);
 			vertices.push_back(depth[2]);
@@ -366,6 +336,7 @@ std::vector<float>	Renderer::createWaterStaticVertices() {
 			pushVertex(color1, vertices);
 			pushVertex(pos[2], vertices);
 			pushVertex(color1, vertices);
+
 			// second triangle : NE -> NW -> SW
 			pushVertex(pos[2], vertices);
 			pushVertex(color2, vertices);
@@ -388,67 +359,6 @@ void	Renderer::pushVertex(glm::vec3 vertex, std::vector<float>& dest) {
 	dest.push_back(vertex.y);
 	dest.push_back(vertex.z);
 }
-
-// std::vector<float> Renderer::createWaterVertices(std::vector<Cell>& cells) {
-// 	const int numThreads = std::thread::hardware_concurrency(); // Get the number of threads available
-// 	const int rowsPerThread = _size / numThreads;               // Divide grid
-// 	std::vector<std::vector<float>> threadResults(numThreads);  // Temporary storage for thread results
-// 	std::mutex mutex;
-
-// 	// Worker function for each thread
-// 	auto worker = [&](int startRow, int endRow, int threadIndex) {
-// 		std::vector<float> localVertices;
-
-// 		for (int y = startRow; y < endRow; ++y) {
-// 			for (int x = 0; x < _size - 1; ++x) {
-// 				// Find quads (SW, SE, NE, NW)
-// 				const s_vec3 quad[4] = {
-// 					{static_cast<float>(x), static_cast<float>(y), cells[index(x, y)].getWaterVertexHeight()},
-// 					{static_cast<float>(x + 1), static_cast<float>(y), cells[index(x + 1, y)].getWaterVertexHeight()},
-// 					{static_cast<float>(x + 1), static_cast<float>(y + 1), cells[index(x + 1, y + 1)].getWaterVertexHeight()},
-// 					{static_cast<float>(x), static_cast<float>(y + 1), cells[index(x, y + 1)].getWaterVertexHeight()},
-// 				};
-
-// 				// Add vertices for two triangles
-// 				s_vec3 color1 = {0.0, 0.0, 0.7}; // First triangle
-// 				pushQuadVertex(quad[0], color1, localVertices);
-// 				pushQuadVertex(quad[1], color1, localVertices);
-// 				pushQuadVertex(quad[2], color1, localVertices);
-
-// 				s_vec3 color2 = {0.0, 0.0, 0.5}; // Second triangle
-// 				pushQuadVertex(quad[2], color2, localVertices);
-// 				pushQuadVertex(quad[3], color2, localVertices);
-// 				pushQuadVertex(quad[0], color2, localVertices);
-// 			}
-// 		}
-
-// 		// Store local results in threadResults
-// 		std::lock_guard<std::mutex> lock(mutex); // Lock when constructed, unlock when destructed
-// 		threadResults[threadIndex] = std::move(localVertices);
-// 	};
-
-// 	// Create threads
-// 	std::vector<std::thread> threads;
-// 	for (int t = 0; t < numThreads; ++t) {
-// 		int startRow = t * rowsPerThread;
-// 		int endRow = (t == numThreads - 1) ? _size - 1 : startRow + rowsPerThread;
-// 		threads.emplace_back(worker, startRow, endRow, t);
-// 	}
-
-// 	// Wait for all threads to finish
-// 	for (auto& thread : threads) {
-// 		thread.join();
-// 	}
-
-// 	// Merge all thread results
-// 	std::vector<float> vertices;
-// 	for (auto& result : threadResults) {
-// 		vertices.insert(vertices.end(), result.begin(), result.end());
-// 	}
-
-// 	return vertices;
-// }
-
 
 int	Renderer::index(int x, int y) {
 	return x + y * _size;
@@ -491,8 +401,6 @@ void	Renderer::initMatrices() {
 	_model = glm::mat4(1.0f);
 }
 
-
-
 void	Renderer::render(WaterSurface& surface, Camera& camera) {
 	int	vertexCount = (_size - 1) * (_size - 1) * 6;
 
@@ -518,3 +426,106 @@ void	Renderer::render(WaterSurface& surface, Camera& camera) {
 		// Handle the error
 	}
 }
+
+
+// std::vector<float> Renderer::createWaterDynamicVertices(std::vector<Cell>& cells) {
+// 	const int numThreads = std::thread::hardware_concurrency(); // Get the number of threads available
+// 	const int rowsPerThread = _size / numThreads;               // Divide grid
+// 	std::vector<std::vector<float>> threadResults(numThreads);  // Temporary storage for thread results
+// 	std::mutex mutex;
+
+// 	// Worker function for each thread
+// 	auto worker = [&](int startRow, int endRow, int threadIndex) {
+// 		std::vector<float> localVertices;
+
+// 		for (int y = startRow; y < endRow; ++y) {
+// 			for (int x = 0; x < _size - 1; ++x) {
+// 			// set heights[y][x] in a matrix
+// 			std::array<std::array<float, 4>, 4> height = getHeightMatrix(cells, x, y, &Cell::getWaterVertexHeight);
+
+// 			// const float	height[4][4] = {
+// 			// 	{	0,
+// 			// 		cells[index(x + 0, std::max(y - 1, 0))].getWaterVertexHeight(),
+// 			// 		cells[index(x + 1, std::max(y - 1, 0))].getWaterVertexHeight(),
+// 			// 		0,
+// 			// 	},
+// 			// 	{	cells[index(std::max(x - 1, 0), y + 0)].getWaterVertexHeight(),
+// 			// 		cells[index(x + 0, y + 0)].getWaterVertexHeight(),
+// 			// 		cells[index(x + 1, y + 0)].getWaterVertexHeight(),
+// 			// 		cells[index(std::min(x + 2, _size - 1), y + 0)].getWaterVertexHeight(),
+// 			// 	},
+// 			// 	{	cells[index(std::max(x - 1, 0), y + 1)].getWaterVertexHeight(),
+// 			// 		cells[index(x + 0, y + 1)].getWaterVertexHeight(),
+// 			// 		cells[index(x + 1, y + 1)].getWaterVertexHeight(),
+// 			// 		cells[index(std::min(x + 2, _size - 1), y + 1)].getWaterVertexHeight(),
+// 			// 	},
+// 			// 	{	0,
+// 			// 		cells[index(x + 0, std::min(y + 2, _size - 1))].getWaterVertexHeight(),
+// 			// 		cells[index(x + 1, std::min(y + 2, _size - 1))].getWaterVertexHeight(),
+// 			// 		0,
+// 			// 	}
+// 			// };
+
+// 			const glm::vec3	normal[4] = {
+// 				calculateNormal(height[2][1], height[0][1], height[1][0], height[1][2]), // SW
+// 				calculateNormal(height[2][2], height[0][2], height[1][1], height[1][3]), // SE
+// 				calculateNormal(height[3][2], height[1][2], height[2][1], height[2][3]), // NE
+// 				calculateNormal(height[3][1], height[1][1], height[2][0], height[2][2]), // NW
+// 			};
+
+// 			const float	depth[4] = {
+// 					cells[index(x, y)].getWaterLevel(),
+// 					cells[index(x + 1, y)].getWaterLevel(),
+// 					cells[index(x + 1, y + 1)].getWaterLevel(),
+// 					cells[index(x, y + 1)].getWaterLevel(),
+// 			};
+
+// 			// first triangle : SW -> SE -> NE
+// 			localVertices.push_back(height[1][1]);
+// 			localVertices.push_back(depth[0]);
+// 			pushVertex(normal[0], localVertices);
+// 			localVertices.push_back(height[1][2]);
+// 			localVertices.push_back(depth[1]);
+// 			pushVertex(normal[1], localVertices);
+// 			localVertices.push_back(height[2][2]);
+// 			localVertices.push_back(depth[2]);
+// 			pushVertex(normal[2], localVertices);
+// 			// second triangle : NE -> NW -> SW
+// 			localVertices.push_back(height[2][2]);
+// 			localVertices.push_back(depth[2]);
+// 			pushVertex(normal[2], localVertices);
+// 			localVertices.push_back(height[2][1]);
+// 			localVertices.push_back(depth[3]);
+// 			pushVertex(normal[3], localVertices);
+// 			localVertices.push_back(height[1][1]);
+// 			localVertices.push_back(depth[0]);
+// 			pushVertex(normal[0], localVertices);
+// 		}
+// 	}
+
+// 		// Store local results in threadResults
+// 		std::lock_guard<std::mutex> lock(mutex); // Lock when constructed, unlock when destructed
+// 		threadResults[threadIndex] = std::move(localVertices);
+// 	};
+
+// 	// Create threads
+// 	std::vector<std::thread> threads;
+// 	for (int t = 0; t < numThreads; ++t) {
+// 		int startRow = t * rowsPerThread;
+// 		int endRow = (t == numThreads - 1) ? _size - 1 : startRow + rowsPerThread;
+// 		threads.emplace_back(worker, startRow, endRow, t);
+// 	}
+
+// 	// Wait for all threads to finish
+// 	for (auto& thread : threads) {
+// 		thread.join();
+// 	}
+
+// 	// Merge all thread results
+// 	std::vector<float> vertices;
+// 	for (auto& result : threadResults) {
+// 		vertices.insert(vertices.end(), result.begin(), result.end());
+// 	}
+
+// 	return vertices;
+// }

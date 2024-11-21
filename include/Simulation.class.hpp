@@ -6,12 +6,13 @@
 #include "Camera.class.hpp"
 #include "mod1.hpp"
 #include <ctime>
+#include <algorithm>
 
 // TEMP, until ground class implemented
 #define DISPLAY_WIDTH 1200
 #define DISPLAY_HEIGHT 800
 
-#define TARGET_FPS 60
+#define TARGET_FPS 30
 
 class Simulation
 {
@@ -22,17 +23,17 @@ class Simulation
 		GLFWwindow*		_window;
 		s_input			_input;
 
+		int				_rain_intensity;
+		int				_rise_intensity;
+		int				_wave_intensity;
 
 	public:
 		Simulation();
 		~Simulation();
 
 		void	run(std::vector<float> heightMap, int size);
-
 		void	initializeWaterSurface(std::vector<float> heightMap, int size);
 		void	initializeCamera(int size);
-		void	initializeGL();
-
 		void	waterControl();
 };
 

@@ -13,6 +13,7 @@ int	main(int argc, char** argv) {
 			MapGenerator mapGenerator(std::string(argv[1]), SIZE);
 			map = mapGenerator.getMap();
 		}
+		
 		simulation.run(map, SIZE);
 	}
 	catch (const std::exception& e) {

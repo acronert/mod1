@@ -19,36 +19,26 @@ struct GridPoint {
     float value = 0.0f;
 };
 
-
 class MapGenerator
 {
 	private:
 		std::vector<float>		_heightMap;
-		int						_size;
-
 		std::vector<s_coord>	_points;
-
-
+		int						_size;
 
 	public:
 		MapGenerator();
 		MapGenerator(std::string filepath, int rendererSize);
 		~MapGenerator();
-		// MapGenerator(const MapGenerator& other);
-		// MapGenerator& operator=(const MapGenerator& other);
 
 		float	findMapRatio();
 		void	normalizePoints();
 
 		void	generateMap();
 		float	IDWinterpolation(int x, int y, float power);
-		float	RBFinterpolation(int x, int y, float epsilon);
-		float	gaussianKernel(float distance, float epsilon);
 
 		void	parseInput(std::string& filepath);
 		std::vector<float>	getMap();
-
-
 
 		void	displayPoints();
 };

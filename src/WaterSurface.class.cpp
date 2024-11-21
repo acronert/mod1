@@ -90,32 +90,8 @@ std::vector<Cell>&	WaterSurface::getCells() {
 }
 
 int	WaterSurface::getSizeX() { return _sizeX; }
+
 int	WaterSurface::getSizeY() { return _sizeY; }
-
-void	WaterSurface::displayWaterLevel() {
-	std::cout << "===== Water Level =====" << std::endl;
-	for (int y = _sizeY - 1; y >= 0; y--) {
-		for (int x = 0; x < _sizeX; x++) {
-			std::cout << std::fixed << std::setw(6) << std::setprecision(3) << _cell[index(x, y)].getWaterLevel() << " ";
-			std::cout << std::defaultfloat;
-		}
-		std::cout << std::endl;
-	}
-	std::cout << "TotalWaterLevel = " << getTotalWaterLevel() << std::endl;
-	std::cout << std::endl;
-}
-
-void	WaterSurface::displayGroundLevel() {
-	std::cout << "===== Ground Level =====" << std::endl;
-	for (int y = _sizeY - 1; y >= 0; y--) {
-		for (int x = 0; x < _sizeX; x++) {
-			std::cout << std::fixed << std::setw(6) << std::setprecision(3) << _cell[index(x, y)].getGroundLevel() << " ";
-			std::cout << std::defaultfloat;
-		}
-		std::cout << std::endl;
-	}
-	std::cout << std::endl;
-}
 
 void	WaterSurface::displayASCII() {
 	float	min = 0.0f;
@@ -137,19 +113,6 @@ void	WaterSurface::displayASCII() {
 	std::cout << "Wave speed = " << WAVE_SPEED <<std::endl;
 }
 
-void	WaterSurface::displayCellInfo(int x, int y) {
-	Cell& cell = _cell[index(x, y)];
-
-	std::cout << "Cell[" << x << "][" << y << "] Info = " << std::endl;
-	std::cout << "      w = " << cell.getWaterLevel() << std::endl;
-	std::cout << "      g = " << cell.getGroundLevel() << std::endl;
-	std::cout << "      vN = " << cell.getVelocityN() << std::endl;
-	std::cout << "      vE = " << cell.getVelocityE() << std::endl;
-	std::cout << "      vS = " << cell.getVelocityS() << std::endl;
-	std::cout << "      vW = " << cell.getVelocityW() << std::endl;
-
-}
-
 float	WaterSurface::getWaterVertexHeight(int x, int y) {
 	return _cell[index(x, y)].getWaterVertexHeight();
 }
@@ -163,8 +126,6 @@ void	WaterSurface::loadGroundMap(const std::vector<float>& heightMap) {
 			_cell[index(x, y)].setGroundLevel(heightMap[idx]);
 		}
 	}
-
-	// (void)heightMap;
 }
 
 void	WaterSurface::resetWater() {

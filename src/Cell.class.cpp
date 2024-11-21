@@ -14,18 +14,15 @@ Cell::Cell(float w, float g, Cell* Ncell, Cell* Ecell, Cell* Scell, Cell* Wcell)
 		_wN = &(Ncell->_w);
 		_gN = &(Ncell->_g);
 	}
-
 	if (Ecell != nullptr){
 		_wE = &(Ecell->_w);
 		_gE = &(Ecell->_g);
 	}
-
 	if (Scell != nullptr){
 		_wS = &(Scell->_w);
 		_gS = &(Scell->_g);
 		_vS = &(Scell->_vN);
 	}
-
 	if (Wcell != nullptr) {
 		_wW = &(Wcell->_w);
 		_gW = &(Wcell->_g);
@@ -82,8 +79,8 @@ Cell& Cell::operator=(const Cell& other) {
 // Acceleration = PROPAGATION * (neighbor.h - target.h)
 	// Compare tallest and max(tallest.g, smallest.g + smallest.w)
 float	Cell::acceleration(float other_w, float other_g) {
-	float other_height;
-	float height;
+	float	other_height;
+	float	height;
 
 	if (other_w + other_g > _w + _g) {
 		other_height = other_w + other_g;
@@ -131,7 +128,6 @@ void	Cell::resolveUnderflow() {
 	positive_neighbors += _vS != nullptr ? (-*_vS < 0): 0;
 	positive_neighbors += _vW != nullptr ? (-*_vW < 0): 0;
 
-
 	if (_vN < 0) {
 		_vN += v_underflow / positive_neighbors;
 		*_wN += _w / positive_neighbors;
@@ -149,7 +145,6 @@ void	Cell::resolveUnderflow() {
 		*_wW += _w / positive_neighbors;
 	}
 	
-	// _totalVelocity -= v_underflow;
 	_vN = 0;
 	_vE = 0;
 	if (_vS != nullptr)
@@ -166,6 +161,7 @@ float	Cell::getWaterVertexHeight() {
 	// count neighbors that have water and return their _g + _w mean
 	float	vertexHeight = 0;
 	int		neighbors = 0;
+
 	if (_wN && *_wN > 0.001) {
 		neighbors++;
 		vertexHeight += *_wN + *_gN;
@@ -210,22 +206,13 @@ void	Cell::addVelocity(float vN, float vE, float vS, float vW) {
 void	Cell::updateWaterLevel() { _w += DELTA_TIME * _totalVelocity; }
 
 float	Cell::getTotalLevel() { return _w + _g; }
-
 float	Cell::getWaterLevel() { return _w; }
-
 float	Cell::getGroundLevel() { return _g; }
 
 void	Cell::setWaterLevel(float w){ _w = w; }
-
 void	Cell::setGroundLevel(float g){ _g = g; }
-
-
-
 
 float	Cell::getVelocityN() { return _vN; }
 float	Cell::getVelocityE() { return _vE; }
 float	Cell::getVelocityS() { return _vS ? *_vS : 0; }
 float	Cell::getVelocityW() { return _vW ? *_vW : 0; }
-
-
-

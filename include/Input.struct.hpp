@@ -19,6 +19,9 @@ struct s_input {
 	bool	rain_mode = false;
 	bool	rise_mode = false;
 	bool	wave_mode = false;
+
+	int		scroll = 0;
+
 	bool	reset_water = false;
 };
 

@@ -28,10 +28,7 @@ class WaterSurface
 		void	checkUnderflow(int x, int y);
 
 		int		index(int x, int y);
-		void	displayWaterLevel();
-		void	displayGroundLevel();
 		void	displayASCII();
-		void	displayCellInfo(int x, int y);
 
 		void	setGroundLevel(int x, int y, float h);
 		void	setWaterLevel(int x, int y, float h);
