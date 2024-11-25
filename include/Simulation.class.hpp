@@ -19,8 +19,8 @@ class Simulation
 	private:
 		WaterSurface*	_waterSurface;
 		Renderer*		_renderer;
-		Camera			_camera;
 		GLFWwindow*		_window;
+		Camera			_camera;
 		s_input			_input;
 
 		int				_rain_intensity;

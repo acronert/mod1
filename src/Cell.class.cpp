@@ -116,6 +116,8 @@ void	Cell::calculateTotalVelocity() {
 	_totalVelocity += _vW ? -*_vW : 0;
 }
 
+
+// Lot of room for improvement...
 void	Cell::resolveUnderflow() {
 	if (_w >= 0)
 		return;

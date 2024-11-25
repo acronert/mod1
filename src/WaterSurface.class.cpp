@@ -57,8 +57,8 @@ void	WaterSurface::checkUnderflow(int x, int y) {
 	checkUnderflow(x-1, y);
 	checkUnderflow(x, y-1);
 	// the x+1 and y+1 are not necessary, cause they will be met next in the update loop
-	// checkUnderflow(x+1, y);
-	// checkUnderflow(x, y+1);
+	checkUnderflow(x+1, y);
+	checkUnderflow(x, y+1);
 }
 
 void	WaterSurface::setGroundLevel(int x, int y, float h) {

@@ -94,6 +94,7 @@ void	Renderer::initGround(std::vector<Cell>& cells) {
 		// Normal X Y Z (Location 2)
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
+
 	// Send data to the VBO
 	std::vector<float> _ground_vertices = createGroundVertices(cells);
 	glBufferData(GL_ARRAY_BUFFER, _ground_vertices.size() * sizeof(float), _ground_vertices.data(), GL_STATIC_DRAW);
@@ -393,7 +394,7 @@ void	Renderer::initMatrices() {
 
 	// Generate _view matrix
 	glm::vec3	cameraPos(10.0f, 10.0f, 10.0f);
-	glm::vec3	cameraTarget(0.0f, .0f, 0.0f);
+	glm::vec3	cameraTarget(0.0f, 0.0f, 0.0f);
 	glm::vec3	up(0.0f, 1.0f, 0.0f);
 	_view = glm::lookAt(cameraPos, cameraTarget, up);
 
@@ -466,19 +467,19 @@ void	Renderer::render(WaterSurface& surface, Camera& camera) {
 // 			// 	}
 // 			// };
 
-// 			const glm::vec3	normal[4] = {
-// 				calculateNormal(height[2][1], height[0][1], height[1][0], height[1][2]), // SW
-// 				calculateNormal(height[2][2], height[0][2], height[1][1], height[1][3]), // SE
-// 				calculateNormal(height[3][2], height[1][2], height[2][1], height[2][3]), // NE
-// 				calculateNormal(height[3][1], height[1][1], height[2][0], height[2][2]), // NW
-// 			};
+// 			// const glm::vec3	normal[4] = {
+// 			// 	calculateNormal(height[2][1], height[0][1], height[1][0], height[1][2]), // SW
+// 			// 	calculateNormal(height[2][2], height[0][2], height[1][1], height[1][3]), // SE
+// 			// 	calculateNormal(height[3][2], height[1][2], height[2][1], height[2][3]), // NE
+// 			// 	calculateNormal(height[3][1], height[1][1], height[2][0], height[2][2]), // NW
+// 			// };
 
-// 			const float	depth[4] = {
-// 					cells[index(x, y)].getWaterLevel(),
-// 					cells[index(x + 1, y)].getWaterLevel(),
-// 					cells[index(x + 1, y + 1)].getWaterLevel(),
-// 					cells[index(x, y + 1)].getWaterLevel(),
-// 			};
+// 			// const float	depth[4] = {
+// 			// 		cells[index(x, y)].getWaterLevel(),
+// 			// 		cells[index(x + 1, y)].getWaterLevel(),
+// 			// 		cells[index(x + 1, y + 1)].getWaterLevel(),
+// 			// 		cells[index(x, y + 1)].getWaterLevel(),
+// 			// };
 
 // 			// first triangle : SW -> SE -> NE
 // 			localVertices.push_back(height[1][1]);
