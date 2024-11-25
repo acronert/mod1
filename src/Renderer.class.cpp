@@ -206,15 +206,15 @@ std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
 			pushVertex(cells[idx[2]].getNormal(), vertices);
 
 			// second triangle : NE -> NW -> SW
-			pushVertex({x+1, y+1, height[2][2]}, vertices);
+			pushVertex({x+1, y+1, cells[idx[2]].getGroundLevel()}, vertices);
 			pushVertex(color2, vertices);
-			pushVertex(normal[2], vertices);
-			pushVertex({x, y+1, height[2][1]}, vertices);
+			pushVertex(cells[idx[2]].getNormal(), vertices);
+			pushVertex({x, y+1, cells[idx[3]].getGroundLevel()}, vertices);
 			pushVertex(color2, vertices);
-			pushVertex(normal[3], vertices);
-			pushVertex({x, y, height[1][1]}, vertices);
+			pushVertex(cells[idx[3]].getNormal(), vertices);
+			pushVertex({x, y, cells[idx[0]].getGroundLevel()}, vertices);
 			pushVertex(color2, vertices);
-			pushVertex(normal[0], vertices);
+			pushVertex(cells[idx[0]].getNormal(), vertices);
 		}
 	}
 	return vertices;
