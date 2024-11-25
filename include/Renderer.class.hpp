@@ -34,6 +34,9 @@
 # define WATER_FRAGMENT_SHADER	"shader/water_fragment_shader.glsl"
 # define GROUND_VERTEX_SHADER	"shader/ground_vertex_shader.glsl"
 # define GROUND_FRAGMENT_SHADER	"shader/ground_fragment_shader.glsl"
+# define DEPTH_VERTEX_SHADER "shader/depth_vertex_shader.glsl"
+# define DEPTH_FRAGMENT_SHADER	"shader/depth_fragment_shader.glsl"
+
 
 struct s_vec3 {
 	float x;
@@ -60,10 +63,16 @@ class Renderer
 		GLuint				_groundVBO;
 		GLint				_ground_shader;
 
+		GLuint				_depthMapFBO;
+		GLuint				_depthMap; //Texture pour stocker la depth map
+		GLuint				_depth_shader;
+
 		// Matrices
 		glm::mat4			_projection;
 		glm::mat4			_view;
 		glm::mat4			_model;
+
+		glm::vec3			_sunDirection;
 
 
 	public:
@@ -83,12 +92,16 @@ class Renderer
 		void	initMatrices();
 		void	initGround(std::vector<Cell>& cells);
 		void	initWater(std::vector<Cell>& cells);
+		void	initDepthMap();
 
 		GLint	createShaderProgram(const char* vertexFilePath, const char* fragmentFilePath);
 		GLint	loadShader(const char* filepath, GLenum shaderType);
 		void	initializeShader(GLint shader);
 		void	pushVertex(glm::vec3 vertex, std::vector<float>& dest);
 		void	pushVertex(glm::vec2 vertex, std::vector<float>& dest);
+
+		void	initDepthShader();
+		void	renderDepthMap();
 
 		std::array<std::array<float, 4>, 4> getHeightMatrix(std::vector<Cell>& cells, int x, int y, float (Cell::*f)());
 

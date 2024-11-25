@@ -1,6 +1,6 @@
 #include "Renderer.class.hpp"
 
-Renderer::Renderer() {}
+Renderer::Renderer() : _sunDirection(-1.f, -1.f, -1.f) {}
 
 Renderer::~Renderer() {
 	glDeleteVertexArrays(1, &_groundVAO);
@@ -24,6 +24,8 @@ void	Renderer::init(std::vector<Cell>& cells, int size) {
 
 	initGround(cells);
 	initWater(cells);
+	initDepthMap();
+	initDepthShader();
 }
 
 GLint	Renderer::loadShader(const char* filepath, GLenum shaderType) {
@@ -143,6 +145,14 @@ void	Renderer::initWater(std::vector<Cell>& cells) {
 }
 
 void Renderer::setupCamera(Camera& camera) {
+	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f);
+    glm::mat4 lightView = glm::lookAt(
+        _sunDirection * 10.0f,  
+        glm::vec3(0.0f, 0.0f, 0.0f), 
+        glm::vec3(0.0f, 1.0f, 0.0f)
+    );
+    glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
 	float yawRad = camera.yaw * M_PI / 180.0f;
 	float pitchRad = camera.pitch * M_PI / 180.0f;
 
@@ -161,18 +171,29 @@ void Renderer::setupCamera(Camera& camera) {
 	_view = glm::lookAt(cameraPos, cameraTarget, up);
 
 	glUseProgram(_water_shader);
+	GLint lightDirLocation2 = glGetUniformLocation(_water_shader, "lightDir");
+	glUniform3fv(lightDirLocation2, 1, glm::value_ptr(glm::normalize(_sunDirection)));
+	GLint lightSpaceMatrixLocation2 = glGetUniformLocation(_water_shader, "lightSpaceMatrix");
+	glUniformMatrix4fv(lightSpaceMatrixLocation2, 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
 	GLint	viewLoc = glGetUniformLocation(_water_shader, "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(_view));
 	if (viewLoc == -1)
 		std::cerr << "Error: viewLoc uniform location is invalid (in setupCamera)" << std::endl;
-	glUseProgram(0);
+	// glUseProgram(0);q
 
 	glUseProgram(_ground_shader);
+	GLint lightDirLocation = glGetUniformLocation(_ground_shader, "lightDir");
+    glUniform3fv(lightDirLocation, 1, glm::value_ptr(glm::normalize(_sunDirection)));
+	glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _depthMap);
+	glUniform1i(glGetUniformLocation(_ground_shader, "shadowMap"), 0);
+	 GLint lightSpaceMatrixLocation = glGetUniformLocation(_ground_shader, "lightSpaceMatrix");
+    glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
 	viewLoc = glGetUniformLocation(_ground_shader, "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(_view));
 	if (viewLoc == -1)
 		std::cerr << "Error: viewLoc uniform location is invalid (in setupCamera)" << std::endl;
-	glUseProgram(0);
+	// glUseProgram(0);
 }
 
 std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
@@ -339,18 +360,35 @@ void	Renderer::initMatrices() {
 	_model = glm::mat4(1.0f);
 }
 
+
+
 void	Renderer::render(WaterSurface& surface, Camera& camera) {
 	int	vertexCount = (_size - 1) * (_size - 1) * 6;
 
+	renderDepthMap();
+
+	// (void) camera;
 	setupCamera(camera);
 
 	// Draw Ground
-	glUseProgram(_ground_shader);
+	// glUseProgram(_ground_shader);
+	// GLint lightDirLocation = glGetUniformLocation(_ground_shader, "lightDir");
+    // glUniform3fv(lightDirLocation, 1, glm::value_ptr(glm::normalize(_sunDirection)));
+	// glActiveTexture(GL_TEXTURE0);
+    // glBindTexture(GL_TEXTURE_2D, _depthMap);
+	// glUniform1i(glGetUniformLocation(_ground_shader, "shadowMap"), 0);
+	//  GLint lightSpaceMatrixLocation = glGetUniformLocation(_ground_shader, "lightSpaceMatrix");
+    // glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+
 	glBindVertexArray(_groundVAO);
 	glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 
 	// Draw Water
-	glUseProgram(_water_shader);
+	// glUseProgram(_water_shader);
+	// GLint lightDirLocation2 = glGetUniformLocation(_water_shader, "lightDir");
+	// glUniform3fv(lightDirLocation2, 1, glm::value_ptr(glm::normalize(_sunDirection)));
+	// GLint lightSpaceMatrixLocation2 = glGetUniformLocation(_water_shader, "lightSpaceMatrix");
+	// glUniformMatrix4fv(lightSpaceMatrixLocation2, 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
 	glBindVertexArray(_waterVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, _waterDynamicVBO);
 	std::vector<float> waterDynamicVertices = createWaterDynamicVertices(surface.getCells());
@@ -437,4 +475,64 @@ std::vector<float> Renderer::createWaterDynamicVertices(std::vector<Cell>& cells
 	}
 
 	return vertices;
+}
+
+void	Renderer::initDepthMap() {
+	// Générer le FBO et la texture
+	glGenFramebuffers(1, &_depthMapFBO);
+	glGenTextures(1, &_depthMap);
+
+	// Configurer la texture de profondeur
+	glBindTexture(GL_TEXTURE_2D, _depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 
+				1024, 1024,  // Taille de la texture
+				0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	
+	// Paramètres de la texture
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+	// Attacher la texture au FBO
+	glBindFramebuffer(GL_FRAMEBUFFER, _depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Renderer::initDepthShader() {
+	_depth_shader = createShaderProgram(
+		DEPTH_VERTEX_SHADER, 
+		DEPTH_FRAGMENT_SHADER
+	);
+}
+
+void Renderer::renderDepthMap() {
+    // Configuration de la matrice light space
+    glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f);
+    glm::mat4 lightView = glm::lookAt(
+        _sunDirection * 10.0f,  
+        glm::vec3(0.0f, 0.0f, 0.0f), 
+        glm::vec3(0.0f, 1.0f, 0.0f)
+    );
+    glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+    // Render depth map
+    glViewport(0, 0, 1024, 1024);
+    glBindFramebuffer(GL_FRAMEBUFFER, _depthMapFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    
+    glUseProgram(_depth_shader);
+    glUniformMatrix4fv(glGetUniformLocation(_depth_shader, "lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+    
+    // Dessiner les objets
+    glBindVertexArray(_groundVAO);
+    glDrawArrays(GL_TRIANGLES, 0, (_size - 1) * (_size - 1) * 6);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 }
