@@ -42,6 +42,7 @@ void	WaterSurface::update() {
 	for (unsigned long int i = 0; i < _cell.size(); i++) {
 		_cell[i].updateVelocity();
 		_cell[i].updateWaterLevel();
+		_cell[i].updateNormal();
 		if (_cell[i].getWaterLevel() < 0) {
 			checkUnderflow(i % _sizeX, i / _sizeY);
 		}

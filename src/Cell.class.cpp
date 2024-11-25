@@ -2,13 +2,13 @@
 
 Cell::Cell() : _w(0.0f), _wN(nullptr), _wE(nullptr), _wS(nullptr), _wW(nullptr),
 	_g(0.0f), _gN(nullptr), _gE(nullptr), _gS(nullptr), _gW(nullptr),
-	_totalVelocity(0.0f), _vN(0.0f), _vE(0.0f), _vS(nullptr), _vW(nullptr)
+	_totalVelocity(0.0f), _vN(0.0f), _vE(0.0f), _vS(nullptr), _vW(nullptr), _normal(0.f)
 {}
 
 Cell::Cell(float w, float g, Cell* Ncell, Cell* Ecell, Cell* Scell, Cell* Wcell)
 	: _w(w), _wN(nullptr), _wE(nullptr), _wS(nullptr), _wW(nullptr),
 	_g(g), _gN(nullptr), _gE(nullptr), _gS(nullptr), _gW(nullptr),
-	_totalVelocity(0.0f) ,_vN(0.0f), _vE(0.0f), _vS(nullptr), _vW(nullptr)
+	_totalVelocity(0.0f) ,_vN(0.0f), _vE(0.0f), _vS(nullptr), _vW(nullptr), _normal(0.f)
 {
 	if (Ncell != nullptr) {
 		_wN = &(Ncell->_w);
@@ -34,7 +34,7 @@ Cell::~Cell() {}
 
 Cell::Cell(const Cell& other)
 	: _w(other._w),	_g(other._g), _totalVelocity(other._totalVelocity),
-	_vN(other._vN), _vE(other._vE)
+	_vN(other._vN), _vE(other._vE), _normal(other._normal)
 {
 	_wN = other._wN != nullptr ? other._wN : nullptr;
 	_wE = other._wE != nullptr ? other._wE : nullptr;
@@ -70,6 +70,7 @@ Cell& Cell::operator=(const Cell& other) {
 
 		_vS = other._vS != nullptr ? other._vS : nullptr;
 		_vW = other._vW != nullptr ? other._vW : nullptr;
+		_normal = other._normal;
 	}
 	return *this;
 }
@@ -216,3 +217,12 @@ float	Cell::getVelocityN() { return _vN; }
 float	Cell::getVelocityE() { return _vE; }
 float	Cell::getVelocityS() { return _vS ? *_vS : 0; }
 float	Cell::getVelocityW() { return _vW ? *_vW : 0; }
+
+void	Cell::updateNormal(void) {
+	float nx = (_wW ? *_wW : _w) - (_wE ? *_wE : _w);
+	float ny = (_wS ? *_wS : _w) - (_wN ? *_wN : _w);
+	float nz = 2.0f;
+
+	glm::vec3 normal(nx, ny, nz);
+	_normal = glm::normalize(normal);
+}

@@ -3,6 +3,7 @@
 
 # include "mod1.hpp"
 # include <iostream>
+# include <glm.hpp>
 
 class Cell
 {
@@ -28,6 +29,8 @@ class Cell
 		float*	_vS;	// velocity S (pointer to neighbor cell vN)
 		float*	_vW;	// velocity E (pointer to neighbor cell vW)
 
+		glm::vec3	_normal;
+
 	public:
 		Cell();
 		Cell(float w, float g, Cell* Ncell, Cell* Ecell, Cell* Scell, Cell* Wcell);
@@ -40,6 +43,9 @@ class Cell
 		void	calculateTotalVelocity();
 		void	updateWaterLevel();
 		void	resolveUnderflow();
+
+		void	updateNormal();
+		glm::vec3	getNormal() const;
 
 		float	getTotalLevel();
 		float	getWaterLevel();

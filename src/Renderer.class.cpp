@@ -174,15 +174,6 @@ void Renderer::setupCamera(Camera& camera) {
 	glUseProgram(0);
 }
 
-glm::vec3 Renderer::calculateNormal(float up, float down, float left, float right) {
-	float nx = left - right;
-	float ny = down - up;
-	float nz = 2.0f;
-
-	glm::vec3 normal(nx, ny, nz);
-	return glm::normalize(normal);
-}
-
 std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
 	std::vector<float>	vertices;
 	glm::vec3 color1 = glm::vec3(0.0f, 0.7f, 0.0f);	// First triangle color
@@ -193,26 +184,26 @@ std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
 	for (int y = 0; y < _size - 1; ++y) {
 		for (int x = 0; x < _size - 1; ++x) {
 			// set heights[y][x] in a matrix
-			std::array<std::array<float, 4>, 4> height = getHeightMatrix(cells, x, y, &Cell::getGroundLevel);
+			// std::array<std::array<float, 4>, 4> height = getHeightMatrix(cells, x, y, &Cell::getGroundLevel);
 
-			// Calculate normals with the neighbors heights (up, down, left, right)
-			const glm::vec3	normal[4] = {
-				calculateNormal(height[2][1], height[0][1], height[1][0], height[1][2]), // SW
-				calculateNormal(height[2][2], height[0][2], height[1][1], height[1][3]), // SE
-				calculateNormal(height[3][2], height[1][2], height[2][1], height[2][3]), // NE
-				calculateNormal(height[3][1], height[1][1], height[2][0], height[2][2]), // NW
+			std::vector<int> idx = {
+				index(x, y),
+				index(x+1, y),
+				index(x+1, y+1),
+				index(x, y+1)
 			};
 
+
 			// first triangle : SW -> SE -> NE
-			pushVertex({x, y, height[1][1]}, vertices);
+			pushVertex({x, y, cells[idx[0]].getGroundLevel()}, vertices);
 			pushVertex(color1, vertices);
-			pushVertex(normal[0], vertices);
-			pushVertex({x+1, y, height[1][2]}, vertices);
+			pushVertex(cells[idx[0]].getNormal(), vertices);
+			pushVertex({x+1, y, cells[idx[1]].getGroundLevel()}, vertices);
 			pushVertex(color1, vertices);
-			pushVertex(normal[1], vertices);
-			pushVertex({x+1, y+1, height[2][2]}, vertices);
+			pushVertex(cells[idx[1]].getNormal(), vertices);
+			pushVertex({x+1, y+1, cells[idx[2]].getGroundLevel()}, vertices);
 			pushVertex(color1, vertices);
-			pushVertex(normal[2], vertices);
+			pushVertex(cells[idx[2]].getNormal(), vertices);
 
 			// second triangle : NE -> NW -> SW
 			pushVertex({x+1, y+1, height[2][2]}, vertices);
