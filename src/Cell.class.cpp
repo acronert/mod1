@@ -220,6 +220,7 @@ float	Cell::getVelocityE() { return _vE; }
 float	Cell::getVelocityS() { return _vS ? *_vS : 0; }
 float	Cell::getVelocityW() { return _vW ? *_vW : 0; }
 glm::vec3	Cell::getNormal() const { return _normal; }
+glm::vec3	Cell::getGroundNormal() const { return _groundNormal; }
 
 void	Cell::updateNormal(void) {
 	float nx = (_wW ? *_wW : _w) - (_wE ? *_wE : _w);
@@ -228,4 +229,13 @@ void	Cell::updateNormal(void) {
 
 	glm::vec3 normal(nx, ny, nz);
 	_normal = glm::normalize(normal);
+}
+
+void	Cell::updateGroundNormal(void) {
+	float nx = (_gW ? *_gW : _g) - (_gE ? *_gE : _g);
+	float ny = (_gS ? *_gS : _g) - (_gN ? *_gN : _g);
+	float nz = 2.0f;
+
+	glm::vec3 normal(nx, ny, nz);
+	_groundNormal = glm::normalize(normal);
 }

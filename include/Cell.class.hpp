@@ -30,6 +30,7 @@ class Cell
 		float*	_vW;	// velocity E (pointer to neighbor cell vW)
 
 		glm::vec3	_normal;
+		glm::vec3	_groundNormal;
 
 	public:
 		Cell();
@@ -46,6 +47,9 @@ class Cell
 
 		void	updateNormal();
 		glm::vec3	getNormal() const;
+
+		void	updateGroundNormal();
+		glm::vec3	getGroundNormal() const;
 
 		float	getTotalLevel();
 		float	getWaterLevel();

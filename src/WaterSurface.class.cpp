@@ -173,3 +173,11 @@ void	WaterSurface::makeWave(float intensity) {
 		_cell[index(x, 0)].addWater(intensity);
 	}
 }
+
+void	WaterSurface::updateGroundNormal() {
+	for (int y = 0; y < _sizeY; y++) {
+		for (int x = 0; x < _sizeX; x++) {
+			_cell[index(x, y)].updateGroundNormal();
+		}
+	}
+}

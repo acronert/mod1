@@ -156,6 +156,7 @@ void	Simulation::initializeWaterSurface(std::vector<float> heightMap, int size) 
 		throw std::invalid_argument("heightMap is larger than expected");
 	for (size_t i = 0; i < heightMap.size(); i++)
 		_waterSurface->setGroundLevel(i % size, i / size, heightMap[i]);
+	_waterSurface->updateGroundNormal();
 }
 
 void	Simulation::waterControl() {

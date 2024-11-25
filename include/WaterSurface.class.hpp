@@ -41,6 +41,7 @@ class WaterSurface
 		float	getWaterVertexHeight(int x, int y);
 
 		void	update();
+		void	updateGroundNormal();
 
 		void	loadGroundMap(const std::vector<float>& heightmap);
 

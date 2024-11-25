@@ -194,68 +194,68 @@ std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
 			// first triangle : SW -> SE -> NE
 			pushVertex({x, y, cells[idx[0]].getGroundLevel()}, vertices);
 			pushVertex(color1, vertices);
-			pushVertex(cells[idx[0]].getNormal(), vertices);
+			pushVertex(cells[idx[0]].getGroundNormal(), vertices);
 			pushVertex({x+1, y, cells[idx[1]].getGroundLevel()}, vertices);
 			pushVertex(color1, vertices);
-			pushVertex(cells[idx[1]].getNormal(), vertices);
+			pushVertex(cells[idx[1]].getGroundNormal(), vertices);
 			pushVertex({x+1, y+1, cells[idx[2]].getGroundLevel()}, vertices);
 			pushVertex(color1, vertices);
-			pushVertex(cells[idx[2]].getNormal(), vertices);
+			pushVertex(cells[idx[2]].getGroundNormal(), vertices);
 
 			// second triangle : NE -> NW -> SW
 			pushVertex({x+1, y+1, cells[idx[2]].getGroundLevel()}, vertices);
 			pushVertex(color2, vertices);
-			pushVertex(cells[idx[2]].getNormal(), vertices);
+			pushVertex(cells[idx[2]].getGroundNormal(), vertices);
 			pushVertex({x, y+1, cells[idx[3]].getGroundLevel()}, vertices);
 			pushVertex(color2, vertices);
-			pushVertex(cells[idx[3]].getNormal(), vertices);
+			pushVertex(cells[idx[3]].getGroundNormal(), vertices);
 			pushVertex({x, y, cells[idx[0]].getGroundLevel()}, vertices);
 			pushVertex(color2, vertices);
-			pushVertex(cells[idx[0]].getNormal(), vertices);
+			pushVertex(cells[idx[0]].getGroundNormal(), vertices);
 		}
 	}
 	return vertices;
 }
 
-std::vector<float>	Renderer::createWaterDynamicVertices(std::vector<Cell>& cells) {
-	std::vector<float>	vertices;
+// std::vector<float>	Renderer::createWaterDynamicVertices(std::vector<Cell>& cells) {
+// 	std::vector<float>	vertices;
 
-	vertices.reserve((_size - 1) * (_size - 1) * 6 * 5);
+// 	vertices.reserve((_size - 1) * (_size - 1) * 6 * 5);
 
-	for (int y = 0; y < _size - 1; ++y) {
-		for (int x = 0; x < _size - 1; ++x) {
-			std::vector<int> idx = {
-				index(x, y),
-				index(x+1, y),
-				index(x+1, y+1),
-				index(x, y+1)
-			};
+// 	for (int y = 0; y < _size - 1; ++y) {
+// 		for (int x = 0; x < _size - 1; ++x) {
+// 			std::vector<int> idx = {
+// 				index(x, y),
+// 				index(x+1, y),
+// 				index(x+1, y+1),
+// 				index(x, y+1)
+// 			};
 
-			// first triangle : SW -> SE -> NE
-			vertices.push_back(cells[idx[0]].getWaterVertexHeight());
-			vertices.push_back(cells[idx[0]].getWaterLevel());
-			pushVertex(cells[idx[0]].getNormal(), vertices);
-			vertices.push_back(cells[idx[1]].getWaterVertexHeight());
-			vertices.push_back(cells[idx[1]].getWaterLevel());
-			pushVertex(cells[idx[1]].getNormal(), vertices);
-			vertices.push_back(cells[idx[2]].getWaterVertexHeight());
-			vertices.push_back(cells[idx[2]].getWaterLevel());
-			pushVertex(cells[idx[2]].getNormal(), vertices);
+// 			// first triangle : SW -> SE -> NE
+// 			vertices.push_back(cells[idx[0]].getWaterVertexHeight());
+// 			vertices.push_back(cells[idx[0]].getWaterLevel());
+// 			pushVertex(cells[idx[0]].getNormal(), vertices);
+// 			vertices.push_back(cells[idx[1]].getWaterVertexHeight());
+// 			vertices.push_back(cells[idx[1]].getWaterLevel());
+// 			pushVertex(cells[idx[1]].getNormal(), vertices);
+// 			vertices.push_back(cells[idx[2]].getWaterVertexHeight());
+// 			vertices.push_back(cells[idx[2]].getWaterLevel());
+// 			pushVertex(cells[idx[2]].getNormal(), vertices);
 
-			// second triangle : NE -> NW -> SW
-			vertices.push_back(cells[idx[2]].getWaterVertexHeight());
-			vertices.push_back(cells[idx[2]].getWaterLevel());
-			pushVertex(cells[idx[2]].getNormal(), vertices);
-			vertices.push_back(cells[idx[3]].getWaterVertexHeight());
-			vertices.push_back(cells[idx[3]].getWaterLevel());
-			pushVertex(cells[idx[3]].getNormal(), vertices);
-			vertices.push_back(cells[idx[0]].getWaterVertexHeight());
-			vertices.push_back(cells[idx[0]].getWaterLevel());
-			pushVertex(cells[idx[0]].getNormal(), vertices);
-		}
-	}
-	return vertices;
-}
+// 			// second triangle : NE -> NW -> SW
+// 			vertices.push_back(cells[idx[2]].getWaterVertexHeight());
+// 			vertices.push_back(cells[idx[2]].getWaterLevel());
+// 			pushVertex(cells[idx[2]].getNormal(), vertices);
+// 			vertices.push_back(cells[idx[3]].getWaterVertexHeight());
+// 			vertices.push_back(cells[idx[3]].getWaterLevel());
+// 			pushVertex(cells[idx[3]].getNormal(), vertices);
+// 			vertices.push_back(cells[idx[0]].getWaterVertexHeight());
+// 			vertices.push_back(cells[idx[0]].getWaterLevel());
+// 			pushVertex(cells[idx[0]].getNormal(), vertices);
+// 		}
+// 	}
+// 	return vertices;
+// }
 
 std::vector<float>	Renderer::createWaterStaticVertices() {
 	std::vector<float>	vertices;
@@ -366,104 +366,75 @@ void	Renderer::render(WaterSurface& surface, Camera& camera) {
 }
 
 
-// std::vector<float> Renderer::createWaterDynamicVertices(std::vector<Cell>& cells) {
-// 	const int numThreads = std::thread::hardware_concurrency(); // Get the number of threads available
-// 	const int rowsPerThread = _size / numThreads;               // Divide grid
-// 	std::vector<std::vector<float>> threadResults(numThreads);  // Temporary storage for thread results
-// 	std::mutex mutex;
+std::vector<float> Renderer::createWaterDynamicVertices(std::vector<Cell>& cells) {
+	const int numThreads = std::thread::hardware_concurrency(); // Get the number of threads available
+	const int rowsPerThread = _size / numThreads;               // Divide grid
+	std::vector<std::vector<float>> threadResults(numThreads);  // Temporary storage for thread results
+	std::mutex mutex;
 
-// 	// Worker function for each thread
-// 	auto worker = [&](int startRow, int endRow, int threadIndex) {
-// 		std::vector<float> localVertices;
+	// Worker function for each thread
+	auto worker = [&](int startRow, int endRow, int threadIndex) {
+		std::vector<float> localVertices;
 
-// 		for (int y = startRow; y < endRow; ++y) {
-// 			for (int x = 0; x < _size - 1; ++x) {
-// 			// set heights[y][x] in a matrix
-// 			std::array<std::array<float, 4>, 4> height = getHeightMatrix(cells, x, y, &Cell::getWaterVertexHeight);
+		for (int y = startRow; y < endRow; ++y) {
+			for (int x = 0; x < _size - 1; ++x) {
+			std::vector<int> idx = {
+				index(x, y),
+				index(x+1, y),
+				index(x+1, y+1),
+				index(x, y+1)
+			};
 
-// 			// const float	height[4][4] = {
-// 			// 	{	0,
-// 			// 		cells[index(x + 0, std::max(y - 1, 0))].getWaterVertexHeight(),
-// 			// 		cells[index(x + 1, std::max(y - 1, 0))].getWaterVertexHeight(),
-// 			// 		0,
-// 			// 	},
-// 			// 	{	cells[index(std::max(x - 1, 0), y + 0)].getWaterVertexHeight(),
-// 			// 		cells[index(x + 0, y + 0)].getWaterVertexHeight(),
-// 			// 		cells[index(x + 1, y + 0)].getWaterVertexHeight(),
-// 			// 		cells[index(std::min(x + 2, _size - 1), y + 0)].getWaterVertexHeight(),
-// 			// 	},
-// 			// 	{	cells[index(std::max(x - 1, 0), y + 1)].getWaterVertexHeight(),
-// 			// 		cells[index(x + 0, y + 1)].getWaterVertexHeight(),
-// 			// 		cells[index(x + 1, y + 1)].getWaterVertexHeight(),
-// 			// 		cells[index(std::min(x + 2, _size - 1), y + 1)].getWaterVertexHeight(),
-// 			// 	},
-// 			// 	{	0,
-// 			// 		cells[index(x + 0, std::min(y + 2, _size - 1))].getWaterVertexHeight(),
-// 			// 		cells[index(x + 1, std::min(y + 2, _size - 1))].getWaterVertexHeight(),
-// 			// 		0,
-// 			// 	}
-// 			// };
+			// first triangle : SW -> SE -> NE
+			localVertices.push_back(cells[idx[0]].getWaterVertexHeight());
+			localVertices.push_back(cells[idx[0]].getWaterLevel());
+			pushVertex(cells[idx[0]].getNormal(), localVertices);
+			localVertices.push_back(cells[idx[1]].getWaterVertexHeight());
+			localVertices.push_back(cells[idx[1]].getWaterLevel());
+			pushVertex(cells[idx[1]].getNormal(), localVertices);
+			localVertices.push_back(cells[idx[2]].getWaterVertexHeight());
+			localVertices.push_back(cells[idx[2]].getWaterLevel());
+			pushVertex(cells[idx[2]].getNormal(), localVertices);
 
-// 			// const glm::vec3	normal[4] = {
-// 			// 	calculateNormal(height[2][1], height[0][1], height[1][0], height[1][2]), // SW
-// 			// 	calculateNormal(height[2][2], height[0][2], height[1][1], height[1][3]), // SE
-// 			// 	calculateNormal(height[3][2], height[1][2], height[2][1], height[2][3]), // NE
-// 			// 	calculateNormal(height[3][1], height[1][1], height[2][0], height[2][2]), // NW
-// 			// };
+			// second triangle : NE -> NW -> SW
+			localVertices.push_back(cells[idx[2]].getWaterVertexHeight());
+			localVertices.push_back(cells[idx[2]].getWaterLevel());
+			pushVertex(cells[idx[2]].getNormal(), localVertices);
+			localVertices.push_back(cells[idx[3]].getWaterVertexHeight());
+			localVertices.push_back(cells[idx[3]].getWaterLevel());
+			pushVertex(cells[idx[3]].getNormal(), localVertices);
+			localVertices.push_back(cells[idx[0]].getWaterVertexHeight());
+			localVertices.push_back(cells[idx[0]].getWaterLevel());
+			pushVertex(cells[idx[0]].getNormal(), localVertices);
+		}
+	}
 
-// 			// const float	depth[4] = {
-// 			// 		cells[index(x, y)].getWaterLevel(),
-// 			// 		cells[index(x + 1, y)].getWaterLevel(),
-// 			// 		cells[index(x + 1, y + 1)].getWaterLevel(),
-// 			// 		cells[index(x, y + 1)].getWaterLevel(),
-// 			// };
+		// Store local results in threadResults
+		std::lock_guard<std::mutex> lock(mutex); // Lock when constructed, unlock when destructed
+		threadResults[threadIndex] = std::move(localVertices);
+	};
 
-// 			// first triangle : SW -> SE -> NE
-// 			localVertices.push_back(height[1][1]);
-// 			localVertices.push_back(depth[0]);
-// 			pushVertex(normal[0], localVertices);
-// 			localVertices.push_back(height[1][2]);
-// 			localVertices.push_back(depth[1]);
-// 			pushVertex(normal[1], localVertices);
-// 			localVertices.push_back(height[2][2]);
-// 			localVertices.push_back(depth[2]);
-// 			pushVertex(normal[2], localVertices);
-// 			// second triangle : NE -> NW -> SW
-// 			localVertices.push_back(height[2][2]);
-// 			localVertices.push_back(depth[2]);
-// 			pushVertex(normal[2], localVertices);
-// 			localVertices.push_back(height[2][1]);
-// 			localVertices.push_back(depth[3]);
-// 			pushVertex(normal[3], localVertices);
-// 			localVertices.push_back(height[1][1]);
-// 			localVertices.push_back(depth[0]);
-// 			pushVertex(normal[0], localVertices);
-// 		}
-// 	}
+	// Create threads
+	std::vector<std::thread> threads;
+	for (int t = 0; t < numThreads; ++t) {
+		int startRow = t * rowsPerThread;
+		int endRow = (t == numThreads - 1) ? _size - 1 : startRow + rowsPerThread;
+		threads.emplace_back(worker, startRow, endRow, t);
+	}
 
-// 		// Store local results in threadResults
-// 		std::lock_guard<std::mutex> lock(mutex); // Lock when constructed, unlock when destructed
-// 		threadResults[threadIndex] = std::move(localVertices);
-// 	};
+	// Wait for all threads to finish
+	for (auto& thread : threads) {
+		thread.join();
+	}
 
-// 	// Create threads
-// 	std::vector<std::thread> threads;
-// 	for (int t = 0; t < numThreads; ++t) {
-// 		int startRow = t * rowsPerThread;
-// 		int endRow = (t == numThreads - 1) ? _size - 1 : startRow + rowsPerThread;
-// 		threads.emplace_back(worker, startRow, endRow, t);
-// 	}
+	// Merge all thread results
+	std::vector<float> vertices;
+	
+	vertices.reserve((_size - 1) * (_size - 1) * 6 * 5);
 
-// 	// Wait for all threads to finish
-// 	for (auto& thread : threads) {
-// 		thread.join();
-// 	}
+	for (auto& result : threadResults) {
+		vertices.insert(vertices.end(), result.begin(), result.end());
+	}
 
-// 	// Merge all thread results
-// 	std::vector<float> vertices;
-// 	for (auto& result : threadResults) {
-// 		vertices.insert(vertices.end(), result.begin(), result.end());
-// 	}
-
-// 	return vertices;
-// }
+	return vertices;
+}
