@@ -1,7 +1,7 @@
 
 NAME		=	mod1
 CXX			=	c++
-FLAGS		=	-Wall -Wextra -Werror -g3
+FLAGS		=	-Wall -Wextra -Werror -g3 -O3
 # GLFLAGS		=	-lglfw -lGL -lGLU -lX11 -lm -pthread -lGLEW 
 GLFLAGS		= -L ./lib/glew -lGLEW -lglfw -lGL -lGLU -lX11 -lm -pthread
 

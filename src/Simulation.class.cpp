@@ -187,11 +187,11 @@ void	Simulation::waterControl() {
 	// std::cout << "_wave_intensity = " << _wave_intensity << std::endl;
 
 	if (_rise_intensity)
-		_waterSurface->riseWater(_rise_intensity * 0.002f, 0.1f);
+		_waterSurface->riseWater(_rise_intensity * 0.003f, 0.1f);
 	if (_rain_intensity)
 		_waterSurface->makeRain(_rain_intensity * 0.00005f, 1.5f);
 	if (_wave_intensity)
-		_waterSurface->makeWave(_wave_intensity * 0.15f);
+		_waterSurface->makeWave(_wave_intensity * 0.25f);
 }
 
 void	Simulation::run(std::vector<float> heightMap, int size) {
