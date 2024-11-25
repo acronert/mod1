@@ -184,16 +184,12 @@ std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
 
 	for (int y = 0; y < _size - 1; ++y) {
 		for (int x = 0; x < _size - 1; ++x) {
-			// set heights[y][x] in a matrix
-			// std::array<std::array<float, 4>, 4> height = getHeightMatrix(cells, x, y, &Cell::getGroundLevel);
-
 			std::vector<int> idx = {
 				index(x, y),
 				index(x+1, y),
 				index(x+1, y+1),
 				index(x, y+1)
 			};
-
 
 			// first triangle : SW -> SE -> NE
 			pushVertex({x, y, cells[idx[0]].getGroundLevel()}, vertices);
@@ -207,52 +203,18 @@ std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
 			pushVertex(cells[idx[2]].getNormal(), vertices);
 
 			// second triangle : NE -> NW -> SW
-			pushVertex({x+1, y+1, height[2][2]}, vertices);
+			pushVertex({x+1, y+1, cells[idx[2]].getGroundLevel()}, vertices);
 			pushVertex(color2, vertices);
-			pushVertex(normal[2], vertices);
-			pushVertex({x, y+1, height[2][1]}, vertices);
+			pushVertex(cells[idx[2]].getNormal(), vertices);
+			pushVertex({x, y+1, cells[idx[3]].getGroundLevel()}, vertices);
 			pushVertex(color2, vertices);
-			pushVertex(normal[3], vertices);
-			pushVertex({x, y, height[1][1]}, vertices);
+			pushVertex(cells[idx[3]].getNormal(), vertices);
+			pushVertex({x, y, cells[idx[0]].getGroundLevel()}, vertices);
 			pushVertex(color2, vertices);
-			pushVertex(normal[0], vertices);
+			pushVertex(cells[idx[0]].getNormal(), vertices);
 		}
 	}
 	return vertices;
-}
-
-// THE CURSED FUNCTIONS OF HEIGHTS AND NORMALS
-//                         
-//  3   y+2  0---X---X---0 
-//           |   |   |   | 
-//  2   y+1  X---NW--NE--X 
-//           |   |   |   | 
-//  1    y   X---SW--SE--X 
-//           |   |   |   | 
-//  0   y-1  0---X---X---0 
-//          x-1  x  x+1 x+2
-//                         
-//           0   1   2   3 
-std::array<std::array<float, 4>, 4> Renderer::getHeightMatrix(
-	std::vector<Cell>& cells, int x, int y, float (Cell::*f)()) {
-	// Define a 4x4 array initialized to zeros
-	std::array<std::array<float, 4>, 4> matrix = {};
-
-	// Fill the matrix [y][x]
-	matrix[0][1] = (cells[index(x + 0, std::max(y - 1, 0))].*f)();
-	matrix[0][2] = (cells[index(x + 1, std::max(y - 1, 0))].*f)();
-	matrix[1][0] = (cells[index(std::max(x - 1, 0), y + 0)].*f)();
-	matrix[1][1] = (cells[index(x + 0, y + 0)].*f)();
-	matrix[1][2] = (cells[index(x + 1, y + 0)].*f)();
-	matrix[1][3] = (cells[index(std::min(x + 2, _size - 1), y + 0)].*f)();
-	matrix[2][0] = (cells[index(std::max(x - 1, 0), y + 1)].*f)();
-	matrix[2][1] = (cells[index(x + 0, y + 1)].*f)();
-	matrix[2][2] = (cells[index(x + 1, y + 1)].*f)();
-	matrix[2][3] = (cells[index(std::min(x + 2, _size - 1), y + 1)].*f)();
-	matrix[3][1] = (cells[index(x + 0, std::min(y + 2, _size - 1))].*f)();
-	matrix[3][2] = (cells[index(x + 1, std::min(y + 2, _size - 1))].*f)();
-
-	return matrix;
 }
 
 std::vector<float>	Renderer::createWaterDynamicVertices(std::vector<Cell>& cells) {
@@ -262,44 +224,34 @@ std::vector<float>	Renderer::createWaterDynamicVertices(std::vector<Cell>& cells
 
 	for (int y = 0; y < _size - 1; ++y) {
 		for (int x = 0; x < _size - 1; ++x) {
-			// set heights[y][x] in a matrix
-			std::array<std::array<float, 4>, 4> height = getHeightMatrix(cells, x, y, &Cell::getWaterVertexHeight);
-
-			const glm::vec3	normal[4] = {
-				calculateNormal(height[2][1], height[0][1], height[1][0], height[1][2]), // SW
-				calculateNormal(height[2][2], height[0][2], height[1][1], height[1][3]), // SE
-				calculateNormal(height[3][2], height[1][2], height[2][1], height[2][3]), // NE
-				calculateNormal(height[3][1], height[1][1], height[2][0], height[2][2]), // NW
-			};
-
-			const float	depth[4] = {
-					cells[index(x, y)].getWaterLevel(),
-					cells[index(x + 1, y)].getWaterLevel(),
-					cells[index(x + 1, y + 1)].getWaterLevel(),
-					cells[index(x, y + 1)].getWaterLevel(),
+			std::vector<int> idx = {
+				index(x, y),
+				index(x+1, y),
+				index(x+1, y+1),
+				index(x, y+1)
 			};
 
 			// first triangle : SW -> SE -> NE
-			vertices.push_back(height[1][1]);
-			vertices.push_back(depth[0]);
-			pushVertex(normal[0], vertices);
-			vertices.push_back(height[1][2]);
-			vertices.push_back(depth[1]);
-			pushVertex(normal[1], vertices);
-			vertices.push_back(height[2][2]);
-			vertices.push_back(depth[2]);
-			pushVertex(normal[2], vertices);
+			vertices.push_back(cells[idx[0]].getWaterVertexHeight());
+			vertices.push_back(cells[idx[0]].getWaterLevel());
+			pushVertex(cells[idx[0]].getNormal(), vertices);
+			vertices.push_back(cells[idx[1]].getWaterVertexHeight());
+			vertices.push_back(cells[idx[1]].getWaterLevel());
+			pushVertex(cells[idx[1]].getNormal(), vertices);
+			vertices.push_back(cells[idx[2]].getWaterVertexHeight());
+			vertices.push_back(cells[idx[2]].getWaterLevel());
+			pushVertex(cells[idx[2]].getNormal(), vertices);
 
 			// second triangle : NE -> NW -> SW
-			vertices.push_back(height[2][2]);
-			vertices.push_back(depth[2]);
-			pushVertex(normal[2], vertices);
-			vertices.push_back(height[2][1]);
-			vertices.push_back(depth[3]);
-			pushVertex(normal[3], vertices);
-			vertices.push_back(height[1][1]);
-			vertices.push_back(depth[0]);
-			pushVertex(normal[0], vertices);
+			vertices.push_back(cells[idx[2]].getWaterVertexHeight());
+			vertices.push_back(cells[idx[2]].getWaterLevel());
+			pushVertex(cells[idx[2]].getNormal(), vertices);
+			vertices.push_back(cells[idx[3]].getWaterVertexHeight());
+			vertices.push_back(cells[idx[3]].getWaterLevel());
+			pushVertex(cells[idx[3]].getNormal(), vertices);
+			vertices.push_back(cells[idx[0]].getWaterVertexHeight());
+			vertices.push_back(cells[idx[0]].getWaterLevel());
+			pushVertex(cells[idx[0]].getNormal(), vertices);
 		}
 	}
 	return vertices;
@@ -314,27 +266,21 @@ std::vector<float>	Renderer::createWaterStaticVertices() {
 
 	for (int y = 0; y < _size - 1; ++y) {
 		for (int x = 0; x < _size - 1; ++x) {
-			const glm::vec2 pos[4] = {
-				{static_cast<float>(x), static_cast<float>(y)},
-				{static_cast<float>(x + 1), static_cast<float>(y)},
-				{static_cast<float>(x + 1), static_cast<float>(y + 1)},
-				{static_cast<float>(x), static_cast<float>(y + 1)}
-			};
 
 			// first triangle : SW -> SE -> NE
-			pushVertex(pos[0], vertices);
+			pushVertex({x, y}, vertices);
 			pushVertex(color1, vertices);
-			pushVertex(pos[1], vertices);
+			pushVertex({x+1, y}, vertices);
 			pushVertex(color1, vertices);
-			pushVertex(pos[2], vertices);
+			pushVertex({x+1, y+1}, vertices);
 			pushVertex(color1, vertices);
 
 			// second triangle : NE -> NW -> SW
-			pushVertex(pos[2], vertices);
+			pushVertex({x+1, y+1}, vertices);
 			pushVertex(color2, vertices);
-			pushVertex(pos[3], vertices);
+			pushVertex({x, y+1}, vertices);
 			pushVertex(color2, vertices);
-			pushVertex(pos[0], vertices);
+			pushVertex({x, y}, vertices);
 			pushVertex(color2, vertices);
 		}
 	}

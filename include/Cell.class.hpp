@@ -3,7 +3,7 @@
 
 # include "mod1.hpp"
 # include <iostream>
-# include <glm.hpp>
+# include "glm/glm.hpp"
 
 class Cell
 {
