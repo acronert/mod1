@@ -152,7 +152,7 @@ void	Simulation::initializeCamera(int size) {
 
 void	Simulation::initializeWaterSurface(std::vector<float> heightMap, int size) {
 	_waterSurface = new WaterSurface(size, size);
-	if (heightMap.size() > size * size)
+	if (heightMap.size() > static_cast<unsigned long>(size * size))
 		throw std::invalid_argument("heightMap is larger than expected");
 	for (size_t i = 0; i < heightMap.size(); i++)
 		_waterSurface->setGroundLevel(i % size, i / size, heightMap[i]);

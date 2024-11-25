@@ -114,6 +114,7 @@ void	MapGenerator::displayPoints() {
 	}
 }
 
+// inverse distance weighting interpolation
 float MapGenerator::IDWinterpolation(int x, int y, float power) {
 	float result = 0.0f;
 	float weightSum = 0.0f;

@@ -1,7 +1,8 @@
 #ifndef RENDERER_CLASS_HPP
 # define RENDERER_CLASS_HPP
 
-#include <GL/glew.h>
+#include "glew.h"
+// #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>		// For perspective projection
 #include <GLFW/glfw3.h>	// For window and context management
@@ -16,7 +17,7 @@
 
 #include <iostream>
 #include <vector>
-
+#include <array>
 
 #include <thread>
 #include <mutex>
