@@ -226,23 +226,23 @@ std::vector<float>	Renderer::createWaterStaticVertices() {
 
 	vertices.reserve((_size - 1) * (_size - 1) * 6 * 5);
 
-	for (int y = 0; y < _size - 1; ++y) {
-		for (int x = 0; x < _size - 1; ++x) {
+	for (int y = -1; y < _size; ++y) {
+		for (int x = -1; x < _size; ++x) {
 
 			// first triangle : SW -> SE -> NE
-			pushVertex({x, y}, vertices);
+			pushVertex({std::max(x, 0), std::max(y, 0)}, vertices);
 			pushVertex(color1, vertices);
-			pushVertex({x+1, y}, vertices);
+			pushVertex({std::min(x+1, _sizeX), std::max(y, 0)}, vertices);
 			pushVertex(color1, vertices);
-			pushVertex({x+1, y+1}, vertices);
+			pushVertex({std::min(x+1, _sizeX), std::min(y+1, _sizeY)}, vertices);
 			pushVertex(color1, vertices);
 
 			// second triangle : NE -> NW -> SW
-			pushVertex({x+1, y+1}, vertices);
+			pushVertex({std::min(x+1, _sizeX), std::min(y+1, _sizeY)}, vertices);
 			pushVertex(color2, vertices);
-			pushVertex({x, y+1}, vertices);
+			pushVertex({std::max(x, 0), std::min(y+1, _sizeY)}, vertices);
 			pushVertex(color2, vertices);
-			pushVertex({x, y}, vertices);
+			pushVertex({std::max(x, 0), std::max(y, 0)}, vertices);
 			pushVertex(color2, vertices);
 		}
 	}
@@ -339,13 +339,28 @@ std::vector<float> Renderer::createWaterDynamicVertices(std::vector<Cell>& cells
 		std::vector<float> localVertices;
 
 		for (int y = startRow; y < endRow; ++y) {
-			for (int x = 0; x < _size - 1; ++x) {
-			std::vector<int> idx = {
-				index(x, y),
-				index(x+1, y),
-				index(x+1, y+1),
-				index(x, y+1)
-			};
+			for (int x = -1; x < _size; ++x) {
+			// std::vector<int> idx = {
+			// 	index(x, y),
+			// 	index(x+1, y),
+			// 	index(x+1, y+1),
+			// 	index(x, y+1)
+			// };
+			std::vector<glm::vec2>	nPos = {
+				{x, y},
+				{x+1, y},
+				{x+1, y+1},
+				{x, y+1},
+			}
+
+
+			if (nx < 0 || nx > _sizeX || ny < 0 || ny > _sizeY) {
+				// push ground level
+				localVertices.push_back(cells[index(std::max())])
+			}
+			else {
+				// push waterVertex and waterLevel
+			}
 
 			// first triangle : SW -> SE -> NE
 			localVertices.push_back(cells[idx[0]].getWaterVertexHeight());

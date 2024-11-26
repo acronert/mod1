@@ -19,6 +19,7 @@ struct s_input {
 	bool	rain_mode = false;
 	bool	rise_mode = false;
 	bool	wave_mode = false;
+	bool	flush_mode = false;
 
 	int		scroll = 0;
 
