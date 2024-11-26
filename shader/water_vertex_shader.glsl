@@ -27,6 +27,7 @@ void main() {
 
     // calculate transparency
     transparency = min(depth, 0.5);
+    //transparency = 0.5;
 
     fragColor = intensity * color;
 
