@@ -137,7 +137,7 @@ float MapGenerator::IDWinterpolation(int x, int y, float power) {
 		weightSum += weight;
 	}
 	
-	if (weightSum < 1e-6f) {
+	if (weightSum == 0) {
 		return 0.0f;
 	}
 	
