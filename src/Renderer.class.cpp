@@ -1,8 +1,9 @@
 #include "Renderer.class.hpp"
 
-Renderer::Renderer() {}
+Renderer::Renderer() : _initialized(false) {}
 
 Renderer::~Renderer() {
+	if (!_initialized) return;
 	glDeleteVertexArrays(1, &_groundVAO);
 	glDeleteVertexArrays(1, &_waterVAO);
 	glDeleteBuffers(1, &_groundVBO);
@@ -24,6 +25,7 @@ void	Renderer::init(std::vector<Cell>& cells, int size) {
 
 	initGround(cells);
 	initWater(cells);
+	_initialized = true;
 }
 
 GLint	Renderer::loadShader(const char* filepath, GLenum shaderType) {

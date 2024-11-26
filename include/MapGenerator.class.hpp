@@ -7,6 +7,7 @@
 # include <fstream>
 # include <sstream>
 # include <iomanip>
+# include <stb_image.h>
 
 struct s_coord {
 	int	x;

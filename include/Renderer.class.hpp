@@ -51,6 +51,8 @@ class Renderer
 	private:
 		int					_size;
 
+		bool				_initialized;
+
 		GLuint				_waterVAO;
 		GLuint				_waterStaticVBO;
 		GLuint				_waterDynamicVBO;

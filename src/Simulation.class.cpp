@@ -14,7 +14,8 @@ Simulation::Simulation()
 Simulation::~Simulation()
 {
 	delete _waterSurface;
-	delete _renderer;
+	if (_renderer)
+		delete _renderer;
 
 	if (_window) {
 		glfwDestroyWindow(_window);

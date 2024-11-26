@@ -1,7 +1,7 @@
 
 NAME		=	mod1
 CXX			=	c++
-FLAGS		=	-Wall -Wextra -Werror -g3 -O3
+FLAGS		=	-Wall -Wextra -Werror -g3
 # GLFLAGS		=	-lglfw -lGL -lGLU -lX11 -lm -pthread -lGLEW 
 GLFLAGS		= -L ./lib/glew -lGLEW -lglfw -lGL -lGLU -lX11 -lm -pthread
 
@@ -16,7 +16,7 @@ SRCS		=	./src/main.cpp		\
 
 HEADERS		=	-I ./include
 
-LIBS		=	-I ./lib/glew -I ./lib/glm
+LIBS		=	-I ./lib/glew -I ./lib/glm -I ./lib/
 
 OBJS		=	$(SRCS:.cpp=.o)
 

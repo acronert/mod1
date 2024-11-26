@@ -1,3 +1,5 @@
+#define STB_IMAGE_IMPLEMENTATION
+
 #include "MapGenerator.class.hpp"
 
 MapGenerator::MapGenerator() : _size(100) {}
@@ -8,10 +10,9 @@ MapGenerator::MapGenerator(std::string filepath, int rendererSize) : _size(rende
 		throw std::invalid_argument("Invalid arguments: size must me positive");
 	size_t	pos = filepath.find_last_of(".");
 
-
 	if (pos != std::string::npos && filepath.substr(pos) == ".mod1")
 		generateMapFromModFile(filepath);
-	else if (pos != std::string::npos && filepath.substr(pos) == ".jpg")
+	else if (pos != std::string::npos)
 		generateMapFromImage(filepath);
 	else
 		throw std::invalid_argument("Invalid filepath extension");
@@ -56,9 +57,41 @@ void	MapGenerator::generateMapFromModFile(std::string& filepath) {
 
 void	MapGenerator::generateMapFromImage(std::string& filepath) {
 	std::ifstream file(filepath);
+	unsigned char*	imageData = nullptr;
+	int width, height;
 
 	if (!file)
 		throw std::invalid_argument("Invalid filepath");
+
+	// Open map as gray nuance 
+	imageData = stbi_load(filepath.c_str(), &width, &height, NULL, 1);
+
+	if (!imageData)
+		throw std::invalid_argument("Failed to opened image file");
+
+	_heightMap.resize(_size * _size, 0.f);
+
+	for (int x = 0; x <_size; x++) {
+		float xMap = x / _size;
+		float xImg = xMap * width;
+		for (int y = 0; y < _size; y++) {
+			float yMap = y / _size;
+			float yImg = yMap * height;
+			int indexImg = int(yImg) * width + int(xImg);
+			_heightMap[y * _size + x] = (imageData[indexImg] * 100.f) / 255.f;
+		}
+	}
+
+	/* 
+	255 | 127
+	100 | 
+	 */
+
+	stbi_image_free(imageData);
+
+	// Normalise between 0 and 100
+
+	// 
 }
 
 // The implied size is the size of the map that is implied by the .mod1 file
