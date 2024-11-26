@@ -246,6 +246,87 @@ std::vector<float>	Renderer::createWaterStaticVertices() {
 			pushVertex(color2, vertices);
 		}
 	}
+
+	// for (int y = 0; y < _size - 1; y++) {
+	// 	int x = 0; 
+	// 	pushVertex({x, y}, vertices); //bottom 
+	// 	pushVertex(color1, vertices);
+	// 	pushVertex({x, y + 1}, vertices); //bottom-forward
+	// 	pushVertex(color1, vertices);
+	// 	pushVertex({x, y + 1}, vertices); // top forward
+	// 	pushVertex(color1, vertices);
+
+	// 	pushVertex({x, y + 1}, vertices); // top-forward
+	// 	pushVertex(color2, vertices);
+	// 	pushVertex({x, y}, vertices); // top
+	// 	pushVertex(color2, vertices);
+	// 	pushVertex({x, y}, vertices); // bottom
+	// 	pushVertex(color2, vertices);
+
+	// x = _size - 1;
+	// pushVertex({x, y}, vertices); //bottom 
+	// pushVertex(color1, vertices);
+	// pushVertex({x, y}, vertices); //top
+	// pushVertex(color1, vertices);
+	// pushVertex({x, y+1}, vertices); // top forward
+	// pushVertex(color1, vertices);
+	// pushVertex({x, y}, vertices); // bottom
+	// pushVertex(color2, vertices);
+	// pushVertex({x, y+1}, vertices); // bottom forward
+	// pushVertex(color2, vertices);
+	// pushVertex({x, y+1}, vertices); // top forward
+	// pushVertex(color2, vertices);
+	// }
+
+	color1 = glm::normalize(glm::vec3(34.0, 197.0, 255.0)) * 0.8f;
+	color2 = glm::normalize(glm::vec3(34.0, 197.0, 255.0)) * 0.8f;
+
+	for (int x = 0; x < _size; x++) {
+		int y = 0;
+		pushVertex({x, y}, vertices); //bottom 
+		pushVertex(color1, vertices);
+		pushVertex({x + 1, y}, vertices); //bottom-forward
+		pushVertex(color1, vertices);
+		pushVertex({x + 1, y}, vertices); // top forward
+		pushVertex(color1, vertices);
+
+		pushVertex({x + 1, y}, vertices); // top-forward
+		pushVertex(color2, vertices);
+		pushVertex({x, y}, vertices); // top
+		pushVertex(color2, vertices);
+		pushVertex({x, y}, vertices); // bottom
+		pushVertex(color2, vertices);
+
+		y = _size - 1;
+		pushVertex({x, y}, vertices); //bottom 
+		pushVertex(color1, vertices);
+		pushVertex({x + 1, y}, vertices); //bottom-forward
+		pushVertex(color1, vertices);
+		pushVertex({x + 1, y}, vertices); // top forward
+		pushVertex(color1, vertices);
+
+		pushVertex({x + 1, y}, vertices); // top-forward
+		pushVertex(color2, vertices);
+		pushVertex({x, y}, vertices); // top
+		pushVertex(color2, vertices);
+		pushVertex({x, y}, vertices); // bottom
+		pushVertex(color2, vertices);
+	}
+
+	// 	y = _size - 1;
+	// 	pushVertex({x, y}, vertices); //bottom 
+	// 	pushVertex(color1, vertices);
+	// 	pushVertex({x, y}, vertices); //top
+	// 	pushVertex(color1, vertices);
+	// 	pushVertex({x + 1, y}, vertices); // top forward
+	// 	pushVertex(color1, vertices);
+	// 	pushVertex({x, y}, vertices); // bottom
+	// 	pushVertex(color2, vertices);
+	// 	pushVertex({x + 1, y}, vertices); // bottom forward
+	// 	pushVertex(color2, vertices);
+	// 	pushVertex({x + 1, y}, vertices); // top forward
+	// 	pushVertex(color2, vertices);
+
 	return vertices;
 }
 
@@ -302,7 +383,7 @@ void	Renderer::initMatrices() {
 }
 
 void	Renderer::render(WaterSurface& surface, Camera& camera) {
-	int	vertexCount = (_size - 1) * (_size - 1) * 6;
+	int	vertexCount = (_size - 1) * (_size - 1) * 6 + (_size * 2 * 6);
 
 	setupCamera(camera);
 
@@ -317,7 +398,7 @@ void	Renderer::render(WaterSurface& surface, Camera& camera) {
 	glBindBuffer(GL_ARRAY_BUFFER, _waterDynamicVBO);
 	std::vector<float> waterDynamicVertices = createWaterDynamicVertices(surface.getCells());
 	glBufferData(GL_ARRAY_BUFFER, waterDynamicVertices.size() * sizeof(float), waterDynamicVertices.data(), GL_DYNAMIC_DRAW);
-	glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+	glDrawArrays(GL_TRIANGLES, 0, waterDynamicVertices.size());
 
 	// Check OpenGL errors
 	GLenum err = glGetError();
@@ -389,14 +470,143 @@ std::vector<float> Renderer::createWaterDynamicVertices(std::vector<Cell>& cells
 		thread.join();
 	}
 
-	// Merge all thread results
+	// // Merge all thread results
 	std::vector<float> vertices;
 	
-	vertices.reserve((_size - 1) * (_size - 1) * 6 * 5);
+	vertices.reserve((_size - 1) * (_size - 1) * 6 * 5 + (_size * 6 * 5 * 4));
 
 	for (auto& result : threadResults) {
 		vertices.insert(vertices.end(), result.begin(), result.end());
 	}
+
+	// for (int y = 0; y < _size - 1; y++) {
+
+	// 	int x = 0; 
+	// 	// first triangle : SW -> SE -> NE
+	// 	vertices.push_back(cells[index(x, y)].getGroundLevel());
+	// 	vertices.push_back(cells[index(x, y)].getGroundLevel());
+	// 	pushVertex({-1.f, 0.f, 0.f}, vertices);
+
+	// 	vertices.push_back(cells[index(x, y + 1)].getGroundLevel());
+	// 	vertices.push_back(cells[index(x, y + 1)].getGroundLevel());
+	// 	pushVertex({-1.f, 0.f, 0.f}, vertices);
+
+	// 	vertices.push_back(cells[index(x, y + 1)].getWaterVertexHeight());
+	// 	vertices.push_back(cells[index(x, y + 1)].getWaterLevel());
+	// 	pushVertex(cells[index(x, y + 1)].getNormal(), vertices);
+
+	// 	// second triangle : NE -> NW -> SW
+	// 	vertices.push_back(cells[index(x, y + 1)].getWaterVertexHeight());
+	// 	vertices.push_back(cells[index(x, y + 1)].getWaterLevel());
+	// 	pushVertex(cells[index(x, y + 1)].getNormal(), vertices);
+
+	// 	vertices.push_back(cells[index(x, y)].getWaterVertexHeight());
+	// 	vertices.push_back(cells[index(x, y)].getWaterLevel());
+	// 	pushVertex(cells[index(x, y)].getNormal(), vertices);
+
+	// 	vertices.push_back(cells[index(x, y)].getGroundLevel());
+	// 	vertices.push_back(cells[index(x, y)].getGroundLevel());
+	// 	pushVertex({-1.f, 0.f, 0.f}, vertices);
+	// }
+	
+		// int x = 0; 
+		// pushVertex({x, y}, vertices); //bottom 
+		// pushVertex(color1, vertices);
+		// pushVertex({x, y + 1}, vertices); //bottom-forward
+		// pushVertex(color1, vertices);
+		// pushVertex({x, y + 1}, vertices); // top forward
+		// pushVertex(color1, vertices);
+		// pushVertex({x, y + 1}, vertices); // top-forward
+		// pushVertex(color2, vertices);
+		// pushVertex({x, y}, vertices); // top
+		// pushVertex(color2, vertices);
+		// pushVertex({x, y}, vertices); // bottom
+		// pushVertex(color2, vertices);
+
+		// x = _size - 1;
+		// pushVertex({x, y}, vertices); //bottom 
+		// pushVertex(color1, vertices);
+		// pushVertex({x, y}, vertices); //top
+		// pushVertex(color1, vertices);
+		// pushVertex({x, y+1}, vertices); // top forward
+		// pushVertex(color1, vertices);
+		// pushVertex({x, y}, vertices); // bottom
+		// pushVertex(color2, vertices);
+		// pushVertex({x, y+1}, vertices); // bottom forward
+		// pushVertex(color2, vertices);
+		// pushVertex({x, y+1}, vertices); // top forward
+		// pushVertex(color2, vertices);
+	
+	// (void) cells;
+
+	for (int x = 0; x < _size - 1; x++) {
+		int y = 0;
+		vertices.push_back(cells[index(x, y)].getGroundLevel());
+		vertices.push_back(cells[index(x, y)].getGroundLevel());
+		pushVertex(cells[index(x, y)].getNormal(), vertices);
+
+		vertices.push_back(cells[index(x + 1, y)].getGroundLevel());
+		vertices.push_back(cells[index(x + 1, y)].getGroundLevel());
+		pushVertex(cells[index(x + 1, y)].getNormal(), vertices);
+
+		vertices.push_back(cells[index(x + 1, y)].getWaterVertexHeight());
+		vertices.push_back(cells[index(x + 1, y)].getWaterLevel());
+		pushVertex(cells[index(x + 1, y)].getNormal(), vertices);
+
+		// second triangle : NE -> NW -> SW
+		vertices.push_back(cells[index(x + 1, y)].getWaterVertexHeight());
+		vertices.push_back(cells[index(x + 1, y)].getWaterLevel());
+		pushVertex(cells[index(x + 1, y)].getNormal(), vertices);
+
+		vertices.push_back(cells[index(x, y)].getWaterVertexHeight());
+		vertices.push_back(cells[index(x, y)].getWaterLevel());
+		pushVertex(cells[index(x, y)].getNormal(), vertices);
+
+		vertices.push_back(cells[index(x, y)].getGroundLevel());
+		vertices.push_back(cells[index(x, y)].getGroundLevel());
+		pushVertex(cells[index(x, y)].getNormal(), vertices);
+
+		y = _size - 1;
+		vertices.push_back(cells[index(x, y)].getGroundLevel());
+		vertices.push_back(cells[index(x, y)].getGroundLevel());
+		pushVertex(cells[index(x, y)].getNormal(), vertices);
+
+		vertices.push_back(cells[index(x + 1, y)].getGroundLevel());
+		vertices.push_back(cells[index(x + 1, y)].getGroundLevel());
+		pushVertex(cells[index(x + 1, y)].getNormal(), vertices);
+
+		vertices.push_back(cells[index(x + 1, y)].getWaterVertexHeight());
+		vertices.push_back(cells[index(x + 1, y)].getWaterLevel());
+		pushVertex(cells[index(x + 1, y)].getNormal(), vertices);
+
+		// second triangle : NE -> NW -> SW
+		vertices.push_back(cells[index(x + 1, y)].getWaterVertexHeight());
+		vertices.push_back(cells[index(x + 1, y)].getWaterLevel());
+		pushVertex(cells[index(x + 1, y)].getNormal(), vertices);
+
+		vertices.push_back(cells[index(x, y)].getWaterVertexHeight());
+		vertices.push_back(cells[index(x, y)].getWaterLevel());
+		pushVertex(cells[index(x, y)].getNormal(), vertices);
+
+		vertices.push_back(cells[index(x, y)].getGroundLevel());
+		vertices.push_back(cells[index(x, y)].getGroundLevel());
+		pushVertex(cells[index(x, y)].getNormal(), vertices);
+	}
+
+	// 	y = _size - 1;
+	// 	pushVertex({x, y}, vertices); //bottom 
+	// 	pushVertex(color1, vertices);
+	// 	pushVertex({x, y}, vertices); //top
+	// 	pushVertex(color1, vertices);
+	// 	pushVertex({x + 1, y}, vertices); // top forward
+	// 	pushVertex(color1, vertices);
+	// 	pushVertex({x, y}, vertices); // bottom
+	// 	pushVertex(color2, vertices);
+	// 	pushVertex({x + 1, y}, vertices); // bottom forward
+	// 	pushVertex(color2, vertices);
+	// 	pushVertex({x + 1, y}, vertices); // top forward
+	// 	pushVertex(color2, vertices);
+
 
 	return vertices;
 }
