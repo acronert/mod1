@@ -10,7 +10,7 @@
 # include <stb_image.h>
 
 #define HEIGHT_COEFF 20.f
-#define INVERT 1
+#define INVERT 0
 
 struct s_coord {
 	int	x;

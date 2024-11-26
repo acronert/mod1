@@ -91,6 +91,10 @@ void	key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			input->rain_mode = true;
 		else if (key == GLFW_KEY_3)
 			input->wave_mode = true;
+		else if (key == GLFW_KEY_4) {
+			input->flush_mode = !input->flush_mode;
+			std::cout << "Flush = " << !input->flush_mode << std::endl;
+		}
 
 	}
 	if (action == GLFW_RELEASE) {
@@ -175,6 +179,7 @@ void	Simulation::waterControl() {
 		std::cout << "wave intensity = " << _wave_intensity << std::endl;
 	}
 
+
 	if (_input.reset_water) {
 		_waterSurface->resetWater();
 		_rise_intensity = 0;
@@ -189,8 +194,10 @@ void	Simulation::waterControl() {
 		_waterSurface->makeRain(_rain_intensity * 0.00005f, 1.5f);
 	if (_wave_intensity)
 		_waterSurface->makeWave(_wave_intensity * 0.45f);
+	if (_input.flush_mode) {
+		_waterSurface->flush(1, 0, 1, 0);
+	}
 }
-
 void	Simulation::run(std::vector<float> heightMap, int size) {
 	if (size < 0)
 		throw std::invalid_argument("invalid size");

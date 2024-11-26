@@ -219,6 +219,7 @@ float	Cell::getVelocityN() { return _vN; }
 float	Cell::getVelocityE() { return _vE; }
 float	Cell::getVelocityS() { return _vS ? *_vS : 0; }
 float	Cell::getVelocityW() { return _vW ? *_vW : 0; }
+
 glm::vec3	Cell::getNormal() const { return _normal; }
 glm::vec3	Cell::getGroundNormal() const { return _groundNormal; }
 
