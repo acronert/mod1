@@ -14,11 +14,6 @@ struct s_coord {
 	int	z;
 };
 
-struct GridPoint {
-    bool valid = false;
-    float value = 0.0f;
-};
-
 class MapGenerator
 {
 	private:
@@ -34,12 +29,13 @@ class MapGenerator
 		float	findMapRatio();
 		void	normalizePoints();
 
-		void	generateMap();
+		void	generateMapFromModFile(std::string& filepath);
+		void	parseModInput(std::ifstream& file);
 		float	IDWinterpolation(int x, int y, float power);
 
-		void	parseInput(std::string& filepath);
-		std::vector<float>	getMap();
+		void	generateMapFromImage(std::string& filepath);
 
+		std::vector<float>	getMap();
 		void	displayPoints();
 };
 

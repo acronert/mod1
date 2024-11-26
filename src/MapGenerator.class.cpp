@@ -4,7 +4,29 @@ MapGenerator::MapGenerator() : _size(100) {}
 
 MapGenerator::MapGenerator(std::string filepath, int rendererSize) : _size(rendererSize)
 {
-	parseInput(filepath);
+	if (_size < 0)
+		throw std::invalid_argument("Invalid arguments: size must me positive");
+	size_t	pos = filepath.find_last_of(".");
+
+
+	if (pos != std::string::npos && filepath.substr(pos) == ".mod1")
+		generateMapFromModFile(filepath);
+	else if (pos != std::string::npos && filepath.substr(pos) == ".jpg")
+		generateMapFromImage(filepath);
+	else
+		throw std::invalid_argument("Invalid filepath extension");
+
+}
+
+MapGenerator::~MapGenerator() {}
+
+void	MapGenerator::generateMapFromModFile(std::string& filepath) {
+	std::ifstream file(filepath);
+
+	if (!file)
+		throw std::invalid_argument("Invalid filepath");
+
+	parseModInput(file);
 	std::cout << "Real points:" << std::endl;
 	displayPoints();
 
@@ -12,12 +34,6 @@ MapGenerator::MapGenerator(std::string filepath, int rendererSize) : _size(rende
 	std::cout << "Resized points:" << std::endl;
 	displayPoints();
 
-	generateMap();
-}
-
-MapGenerator::~MapGenerator() {}
-
-void	MapGenerator::generateMap() {
 	_heightMap.resize(_size * _size, 0.0f);
 
 	//add border points to known points ( don't duplicates the corners)
@@ -36,6 +52,13 @@ void	MapGenerator::generateMap() {
 				_heightMap[idx] = IDWinterpolation(x, y, 4.0f);
 		}
 	}
+}
+
+void	MapGenerator::generateMapFromImage(std::string& filepath) {
+	std::ifstream file(filepath);
+
+	if (!file)
+		throw std::invalid_argument("Invalid filepath");
 }
 
 // The implied size is the size of the map that is implied by the .mod1 file
@@ -76,15 +99,7 @@ void	MapGenerator::normalizePoints() {
 	}
 }
 
-void	MapGenerator::parseInput(std::string& filepath) {
-	if (_size < 0)
-		throw std::invalid_argument("Invalid arguments: size must me positive");
-	size_t	pos = filepath.find_last_of(".");
-	if (pos == std::string::npos || filepath.substr(pos) != ".mod1")
-		throw std::invalid_argument("Invalid filepath extension");
-	std::ifstream file(filepath);
-	if (!file)
-		throw std::invalid_argument("Invalid filepath");
+void	MapGenerator::parseModInput(std::ifstream& file) {
 	std::string	line;
 	while (std::getline(file, line)) {
 		std::istringstream iss(line);
