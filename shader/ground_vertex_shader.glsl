@@ -15,7 +15,7 @@ void main() {
     gl_Position = projection * view * model * vec4(position, 1.0);
 
     // set lightDir and normalize
-    vec3 lightDir = normalize(vec3(0.5, 0.5, -1.0));
+    vec3 lightDir = normalize(vec3(0.4, 0.4, -1.0));
 
     // calculate light intensity
     float intensity = max(dot(normal, -lightDir), 0.2);

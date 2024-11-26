@@ -66,9 +66,9 @@ void	key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			input->left = true;
 		else if (key == GLFW_KEY_D)
 			input->right = true;
-		else if (key == GLFW_KEY_SPACE)
+		else if (key == GLFW_KEY_E)
 			input->up = true;
-		else if (key == GLFW_KEY_LEFT_SHIFT)
+		else if (key == GLFW_KEY_Q)
 			input->down = true;
 		else if (key == GLFW_KEY_UP)
 			input->pitchUp = true;
@@ -80,9 +80,9 @@ void	key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			input->yawRight = true;
 
 		// Simulation controls
-		else if (key == GLFW_KEY_Q)
+		else if (key == GLFW_KEY_DELETE)
 			input->reset_water = true;
-		else if (key == GLFW_KEY_P)
+		else if (key == GLFW_KEY_SPACE)
 			input->pause = !input->pause;
 		else if (key == GLFW_KEY_1)
 			input->rise_mode = true;
@@ -101,9 +101,9 @@ void	key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			input->left = false;
 		else if (key == GLFW_KEY_D)
 			input->right = false;
-		else if (key == GLFW_KEY_SPACE)
+		else if (key == GLFW_KEY_E)
 			input->up = false;
-		else if (key == GLFW_KEY_LEFT_SHIFT)
+		else if (key == GLFW_KEY_Q)
 			input->down = false;
 		else if (key == GLFW_KEY_UP)
 			input->pitchUp = false;
@@ -182,16 +182,12 @@ void	Simulation::waterControl() {
 		_input.reset_water = false;
 	}
 
-	// std::cout << "_rain_intensity = " << _rain_intensity << std::endl;
-	// std::cout << "_rise_intensity = " << _rise_intensity << std::endl;
-	// std::cout << "_wave_intensity = " << _wave_intensity << std::endl;
-
 	if (_rise_intensity)
 		_waterSurface->riseWater(_rise_intensity * 0.003f, 0.1f);
 	if (_rain_intensity)
 		_waterSurface->makeRain(_rain_intensity * 0.00005f, 1.5f);
 	if (_wave_intensity)
-		_waterSurface->makeWave(_wave_intensity * 0.25f);
+		_waterSurface->makeWave(_wave_intensity * 0.45f);
 }
 
 void	Simulation::run(std::vector<float> heightMap, int size) {
