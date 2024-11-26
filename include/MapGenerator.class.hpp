@@ -9,6 +9,9 @@
 # include <iomanip>
 # include <stb_image.h>
 
+#define HEIGHT_COEFF 20.f
+#define INVERT 1
+
 struct s_coord {
 	int	x;
 	int	y;

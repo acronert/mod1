@@ -223,8 +223,8 @@ glm::vec3	Cell::getNormal() const { return _normal; }
 glm::vec3	Cell::getGroundNormal() const { return _groundNormal; }
 
 void	Cell::updateNormal(void) {
-	float nx = (_wW ? *_wW : _w) - (_wE ? *_wE : _w);
-	float ny = (_wS ? *_wS : _w) - (_wN ? *_wN : _w);
+	float nx = ((_wW ? *_wW : _w) + (_gW ? *_gW : _g)) - ((_wE ? *_wE : _w) + (_gE ? *_gE : _g));
+	float ny = ((_wS ? *_wS : _w) + (_gS ? *_gS : _g)) - ((_wN ? *_wN : _w) + (_gN ? *_gN : _g));
 	float nz = 2.0f;
 
 	glm::vec3 normal(nx, ny, nz);

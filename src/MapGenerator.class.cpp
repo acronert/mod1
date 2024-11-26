@@ -69,16 +69,19 @@ void	MapGenerator::generateMapFromImage(std::string& filepath) {
 	if (!imageData)
 		throw std::invalid_argument("Failed to opened image file");
 
-	_heightMap.resize(_size * _size, 0.f);
+	// _heightMap.resize(_size * _size, 0.f);
 
-	for (int x = 0; x <_size; x++) {
-		float xMap = x / _size;
+	for (int x = 0; x < _size; x++) {
+		float xMap = (float)x / _size;
 		float xImg = xMap * width;
 		for (int y = 0; y < _size; y++) {
-			float yMap = y / _size;
+			float yMap = (float)y / _size;
 			float yImg = yMap * height;
 			int indexImg = int(yImg) * width + int(xImg);
-			_heightMap[y * _size + x] = (imageData[indexImg] * 100.f) / 255.f;
+			float value = (imageData[indexImg] * HEIGHT_COEFF) / 255.f;
+			_heightMap.push_back((INVERT ? (HEIGHT_COEFF - value) : value));
+			// _heightMap[(_size * _size) - (y * _size + x)] = (imageData[indexImg] * 20.f) / 255.f;
+			// std::cout << "xMap = " << xMap << " | xImg = " << xImg << std::endl;
 		}
 	}
 
