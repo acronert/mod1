@@ -539,6 +539,10 @@ std::vector<float> Renderer::createWaterDynamicVertices(std::vector<Cell>& cells
 	
 	// (void) cells;
 
+	// auto edgeCreatorX = [&]() {
+
+	// };
+
 	for (int x = 0; x < _size - 1; x++) {
 		int y = 0;
 		vertices.push_back(cells[index(x, y)].getGroundLevel());
