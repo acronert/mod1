@@ -179,8 +179,8 @@ void Renderer::setupCamera(Camera& camera) {
 
 std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
 	std::vector<float>	vertices;
-	glm::vec3 color1 = glm::vec3(0.0f, 0.7f, 0.0f);	// First triangle color
-	glm::vec3 color2 = glm::vec3(0.0f, 0.7f, 0.0f);	// Second triangle color
+	glm::vec3 color1 = glm::vec3(0.97f, 0.88f, 0.69f);	// First triangle color
+	glm::vec3 color2 = glm::vec3(0.97f, 0.88f, 0.69f);	// Second triangle color
 
 	vertices.reserve((_size - 1) * (_size - 1) * 6 * 9); // pre-allocate to gain LOT of time
 
@@ -218,46 +218,6 @@ std::vector<float>	Renderer::createGroundVertices(std::vector<Cell>& cells) {
 	}
 	return vertices;
 }
-
-// std::vector<float>	Renderer::createWaterDynamicVertices(std::vector<Cell>& cells) {
-// 	std::vector<float>	vertices;
-
-// 	vertices.reserve((_size - 1) * (_size - 1) * 6 * 5);
-
-// 	for (int y = 0; y < _size - 1; ++y) {
-// 		for (int x = 0; x < _size - 1; ++x) {
-// 			std::vector<int> idx = {
-// 				index(x, y),
-// 				index(x+1, y),
-// 				index(x+1, y+1),
-// 				index(x, y+1)
-// 			};
-
-// 			// first triangle : SW -> SE -> NE
-// 			vertices.push_back(cells[idx[0]].getWaterVertexHeight());
-// 			vertices.push_back(cells[idx[0]].getWaterLevel());
-// 			pushVertex(cells[idx[0]].getNormal(), vertices);
-// 			vertices.push_back(cells[idx[1]].getWaterVertexHeight());
-// 			vertices.push_back(cells[idx[1]].getWaterLevel());
-// 			pushVertex(cells[idx[1]].getNormal(), vertices);
-// 			vertices.push_back(cells[idx[2]].getWaterVertexHeight());
-// 			vertices.push_back(cells[idx[2]].getWaterLevel());
-// 			pushVertex(cells[idx[2]].getNormal(), vertices);
-
-// 			// second triangle : NE -> NW -> SW
-// 			vertices.push_back(cells[idx[2]].getWaterVertexHeight());
-// 			vertices.push_back(cells[idx[2]].getWaterLevel());
-// 			pushVertex(cells[idx[2]].getNormal(), vertices);
-// 			vertices.push_back(cells[idx[3]].getWaterVertexHeight());
-// 			vertices.push_back(cells[idx[3]].getWaterLevel());
-// 			pushVertex(cells[idx[3]].getNormal(), vertices);
-// 			vertices.push_back(cells[idx[0]].getWaterVertexHeight());
-// 			vertices.push_back(cells[idx[0]].getWaterLevel());
-// 			pushVertex(cells[idx[0]].getNormal(), vertices);
-// 		}
-// 	}
-// 	return vertices;
-// }
 
 std::vector<float>	Renderer::createWaterStaticVertices() {
 	std::vector<float>	vertices;
