@@ -185,18 +185,18 @@ void	WaterSurface::updateGroundNormal() {
 void	WaterSurface::flush(bool N, bool S, bool E, bool W) {
 	if (N) {
 		for (int x = 0; x < _sizeX; x++)
-			_cell[index(x, _sizeY - 1)].resetWater();
+			_cell[index(x, _sizeY - 1)].setWaterLevel(0.001);
 	}
 	if (S) {
 		for (int x = 0; x < _sizeX; x++)
-			_cell[index(x, 0)].resetWater();
+			_cell[index(x, 0)].setWaterLevel(0.001);
 	}
 	if (E) {
 		for (int y = 0; y < _sizeY; y++)
-			_cell[index(_sizeX - 1, y)].resetWater();
+			_cell[index(_sizeX - 1, y)].setWaterLevel(0.001);
 	}
 	if (W) {
 		for (int y = 0; y < _sizeY; y++)
-			_cell[index(0, y)].resetWater();
+			_cell[index(0, y)].setWaterLevel(0.001);
 	}
 }

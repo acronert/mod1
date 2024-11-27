@@ -93,7 +93,7 @@ void	key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			input->wave_mode = true;
 		else if (key == GLFW_KEY_4) {
 			input->flush_mode = !input->flush_mode;
-			std::cout << "Flush = " << !input->flush_mode << std::endl;
+			std::cout << "Flush = " << input->flush_mode << std::endl;
 		}
 
 	}
@@ -203,6 +203,7 @@ void	Simulation::displayControls() {
 					"\t 1 + scroll	-> change water rise intensity\n" \
 					"\t 2 + scroll	-> change rain intensity\n" \
 					"\t 3 + scroll	-> create wave\n" \
+					"\t 4			-> flush N and W side\n" \
 					"\t Spacebar	-> pause simulation\n" \
 					"\t Delete		-> reset simuation\n";
 }
