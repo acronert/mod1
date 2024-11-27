@@ -23,7 +23,7 @@ void main() {
 
     // calculate light intensity
     float intensity = max(dot(normal, -lightDir), 0.2);
-    //float intensity = 1;
+
 
     // calculate transparency
     transparency = min(depth, 0.5);
