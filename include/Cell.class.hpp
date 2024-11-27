@@ -51,9 +51,6 @@ class Cell
 		void	updateGroundNormal();
 		glm::vec3	getGroundNormal() const;
 
-		float	getTotalLevel();
-		float	getWaterLevel();
-		float	getGroundLevel();
 
 		void	setWaterLevel(float w);
 		void	setGroundLevel(float g);
@@ -62,6 +59,10 @@ class Cell
 		void	addWater(float intensity);
 		void	addVelocity(float vN, float vE, float vS, float vW);
 
+		float	getTotalLevel();
+		float	getWaterLevel();
+		float	getGroundLevel();
+		
 		float	getVelocityN();
 		float	getVelocityE();
 		float	getVelocityS();

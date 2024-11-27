@@ -48,7 +48,6 @@ void	MapGenerator::generateMapFromModFile(std::string& filepath) {
 	for (int y = 0; y  < _size; y++) {
 		for (int x = 0; x  < _size; x++) {
 			int idx = x + y * _size;
-			
 			if (_heightMap[idx] == 0.0f)
 				_heightMap[idx] = IDWinterpolation(x, y, 4.0f);
 		}
@@ -157,7 +156,31 @@ void	MapGenerator::parseModInput(std::ifstream& file) {
 	file.close();
 }
 
-std::vector<float>	MapGenerator::getMap() { return _heightMap; };
+
+// inverse distance weighting interpolation
+float MapGenerator::IDWinterpolation(int x, int y, float power) {
+	float result = 0.0f;
+	float weightSum = 0.0f;
+	
+	if (_points.empty())
+		return 0;
+	for (const auto& point : _points) {
+		float dx = x - point.x;
+		float dy = y - point.y;
+		float distSquared = dx*dx + dy*dy;
+		
+		if (distSquared == 0)
+			return point.z;
+		
+		float weight = 1.0f / std::pow(distSquared, power/2.0f);
+		result += point.z * weight;
+		weightSum += weight;
+	}
+	if (weightSum == 0)
+		return 0.0f;
+
+	return result / weightSum;
+}
 
 void	MapGenerator::displayPoints() {
 	for (std::vector<s_coord>::iterator it = _points.begin(); it != _points.end(); it++) {
@@ -165,32 +188,4 @@ void	MapGenerator::displayPoints() {
 	}
 }
 
-// inverse distance weighting interpolation
-float MapGenerator::IDWinterpolation(int x, int y, float power) {
-	float result = 0.0f;
-	float weightSum = 0.0f;
-	
-	if (_points.empty()) {
-		return 0;
-	}
-	for (const auto& point : _points) {
-		float dx = x - point.x;
-		float dy = y - point.y;
-		float distSquared = dx*dx + dy*dy;
-		
-		if (distSquared == 0) {
-			return point.z;
-		}
-		
-		float weight = 1.0f / std::pow(distSquared, power/2.0f);
-		
-		result += point.z * weight;
-		weightSum += weight;
-	}
-	
-	if (weightSum == 0) {
-		return 0.0f;
-	}
-	
-	return result / weightSum;
-}
+std::vector<float>	MapGenerator::getMap() { return _heightMap; };

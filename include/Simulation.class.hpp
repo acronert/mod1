@@ -12,8 +12,6 @@
 #define DISPLAY_WIDTH 1200
 #define DISPLAY_HEIGHT 800
 
-#define TARGET_FPS 30
-
 class Simulation
 {
 	private:
@@ -35,6 +33,8 @@ class Simulation
 		void	initializeWaterSurface(std::vector<float> heightMap, int size);
 		void	initializeCamera(int size);
 		void	waterControl();
+
+		void	displayControls();
 };
 
 #endif

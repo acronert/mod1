@@ -178,8 +178,6 @@ void	Simulation::waterControl() {
 		_wave_intensity = std::max(0, std::min(_wave_intensity + _input.scroll, 10));
 		std::cout << "wave intensity = " << _wave_intensity << std::endl;
 	}
-
-
 	if (_input.reset_water) {
 		_waterSurface->resetWater();
 		_rise_intensity = 0;
@@ -187,7 +185,6 @@ void	Simulation::waterControl() {
 		_wave_intensity = 0;
 		_input.reset_water = false;
 	}
-
 	if (_rise_intensity)
 		_waterSurface->riseWater(_rise_intensity * 0.003f, 0.1f);
 	if (_rain_intensity)
@@ -198,10 +195,21 @@ void	Simulation::waterControl() {
 		_waterSurface->flush(1, 0, 1, 0);
 	}
 }
+
+void	Simulation::displayControls() {
+	std::cout <<	"Controls:\n" \
+					"\t WASD		-> camera movement\n" \
+					"\t ArrowKeys	-> camera angle\n" \
+					"\t 1 + scroll	-> change water rise intensity\n" \
+					"\t 2 + scroll	-> change rain intensity\n" \
+					"\t 3 + scroll	-> create wave\n" \
+					"\t Spacebar	-> pause simulation\n" \
+					"\t Delete		-> reset simuation\n";
+}
+
 void	Simulation::run(std::vector<float> heightMap, int size) {
 	if (size < 0)
 		throw std::invalid_argument("invalid size");
-	initializeWaterSurface(heightMap, size);
 	// Initialize window
 	if (!glfwInit())
 		throw std::runtime_error("Failed to init GLFW");
@@ -214,16 +222,18 @@ void	Simulation::run(std::vector<float> heightMap, int size) {
 	if (glewInit() != GLEW_OK)
 		throw std::runtime_error("Failed to initialize GLEW");
 
-	// initialize renderer
+	initializeWaterSurface(heightMap, size);
 	_renderer->init(_waterSurface->getCells(), size);
-	// set window user pointer
-	glfwSetWindowUserPointer(_window, &_input);
+	initializeCamera(size);
+
 	// set callbacks
+	glfwSetWindowUserPointer(_window, &_input);
 	glfwSetFramebufferSizeCallback(_window, resize_callback); // resize callback
 	glfwSetKeyCallback(_window, key_callback);
 	glfwSetScrollCallback(_window, scroll_callback);
 
-	initializeCamera(size);
+	// Display Controls
+	displayControls();
 
 	while (!glfwWindowShouldClose(_window)) {
 		glClear(GL_COLOR_BUFFER_BIT); // clear buffer

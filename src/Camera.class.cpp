@@ -1,7 +1,6 @@
 #include "Camera.class.hpp"
 
-Camera::Camera() : posX(0.0f), posY(0.0f), posZ(0.0f),
-					yaw(0.0f), pitch(0.0f) {}
+Camera::Camera() : posX(0.0f), posY(0.0f), posZ(0.0f), yaw(0.0f), pitch(0.0f) {}
 
 Camera::~Camera() {}
 

@@ -2,13 +2,15 @@
 
 Cell::Cell() : _w(0.0f), _wN(nullptr), _wE(nullptr), _wS(nullptr), _wW(nullptr),
 	_g(0.0f), _gN(nullptr), _gE(nullptr), _gS(nullptr), _gW(nullptr),
-	_totalVelocity(0.0f), _vN(0.0f), _vE(0.0f), _vS(nullptr), _vW(nullptr), _normal(0.f)
+	_totalVelocity(0.0f), _vN(0.0f), _vE(0.0f), _vS(nullptr), _vW(nullptr),
+	_normal(0.0f), _groundNormal(0.0f)
 {}
 
 Cell::Cell(float w, float g, Cell* Ncell, Cell* Ecell, Cell* Scell, Cell* Wcell)
 	: _w(w), _wN(nullptr), _wE(nullptr), _wS(nullptr), _wW(nullptr),
 	_g(g), _gN(nullptr), _gE(nullptr), _gS(nullptr), _gW(nullptr),
-	_totalVelocity(0.0f) ,_vN(0.0f), _vE(0.0f), _vS(nullptr), _vW(nullptr), _normal(0.f)
+	_totalVelocity(0.0f) ,_vN(0.0f), _vE(0.0f), _vS(nullptr), _vW(nullptr),
+	_normal(0.0f), _groundNormal(0.0f)
 {
 	if (Ncell != nullptr) {
 		_wN = &(Ncell->_w);
@@ -34,7 +36,7 @@ Cell::~Cell() {}
 
 Cell::Cell(const Cell& other)
 	: _w(other._w),	_g(other._g), _totalVelocity(other._totalVelocity),
-	_vN(other._vN), _vE(other._vE), _normal(other._normal)
+	_vN(other._vN), _vE(other._vE), _normal(other._normal), _groundNormal(other._groundNormal)
 {
 	_wN = other._wN != nullptr ? other._wN : nullptr;
 	_wE = other._wE != nullptr ? other._wE : nullptr;
@@ -52,30 +54,30 @@ Cell::Cell(const Cell& other)
 
 Cell& Cell::operator=(const Cell& other) {
 	if (this != &other) {
-		_w = other._w;
-		_g = other._g;
-		_totalVelocity = other._totalVelocity;
-		_vN = other._vN;
-		_vE = other._vE;
 
+		_w = other._w;
 		_wN = other._wN != nullptr ? other._wN : nullptr;
 		_wE = other._wE != nullptr ? other._wE : nullptr;
 		_wS = other._wS != nullptr ? other._wS : nullptr;
 		_wW = other._wW != nullptr ? other._wW : nullptr;
 
+		_g = other._g;
 		_gN = other._gN != nullptr ? other._gN : nullptr;
 		_gE = other._gE != nullptr ? other._gE : nullptr;
 		_gS = other._gS != nullptr ? other._gS : nullptr;
 		_gW = other._gW != nullptr ? other._gW : nullptr;
 
+		_totalVelocity = other._totalVelocity;
+		_vN = other._vN;
+		_vE = other._vE;
 		_vS = other._vS != nullptr ? other._vS : nullptr;
 		_vW = other._vW != nullptr ? other._vW : nullptr;
+
 		_normal = other._normal;
+		_groundNormal = other._groundNormal;
 	}
 	return *this;
 }
-
-////////////////////////////////////////////////////////////////////////////////
 
 // Acceleration = PROPAGATION * (neighbor.h - target.h)
 	// Compare tallest and max(tallest.g, smallest.g + smallest.w)
@@ -100,7 +102,6 @@ void	Cell::updateVelocity() {
 		_vN = (DAMPENING * _vN) + acceleration(*_wN, *_gN);
 	else
 		_vN = 0;
-
 	if (_wE != nullptr)
 		_vE = (DAMPENING * _vE) + acceleration(*_wE, *_gE);
 	else
@@ -116,7 +117,6 @@ void	Cell::calculateTotalVelocity() {
 	_totalVelocity += _vS ? -*_vS : 0;
 	_totalVelocity += _vW ? -*_vW : 0;
 }
-
 
 // Lot of room for improvement...
 void	Cell::resolveUnderflow() {
@@ -147,7 +147,7 @@ void	Cell::resolveUnderflow() {
 		*_vW += v_underflow / positive_neighbors;
 		*_wW += _w / positive_neighbors;
 	}
-	
+
 	_vN = 0;
 	_vE = 0;
 	if (_vS != nullptr)
@@ -156,6 +156,47 @@ void	Cell::resolveUnderflow() {
 		*_vW = 0;
 	_w = 0;
 }
+
+void	Cell::resetWater() {
+	_w = 0.0f;
+	_vN = 0.0f;
+	_vE = 0.0f;
+}
+
+void	Cell::addWater(float intensity) {
+	_w += intensity;
+	if (_w < 0)
+		_w = 0;
+}
+
+void	Cell::addVelocity(float vN, float vE, float vS, float vW) {
+	_vN += vN;
+	_vE += vE;
+	if (_vS)
+		*_vS += vS;
+	if (_vW)
+		*_vW += vW;
+}
+
+void	Cell::updateNormal(void) {
+	float nx = ((_wW ? *_wW : _w) + (_gW ? *_gW : _g)) - ((_wE ? *_wE : _w) + (_gE ? *_gE : _g));
+	float ny = ((_wS ? *_wS : _w) + (_gS ? *_gS : _g)) - ((_wN ? *_wN : _w) + (_gN ? *_gN : _g));
+	float nz = 2.0f;
+
+	glm::vec3 normal(nx, ny, nz);
+	_normal = glm::normalize(normal);
+}
+
+void	Cell::updateGroundNormal(void) {
+	float nx = (_gW ? *_gW : _g) - (_gE ? *_gE : _g);
+	float ny = (_gS ? *_gS : _g) - (_gN ? *_gN : _g);
+	float nz = 2.0f;
+
+	glm::vec3 normal(nx, ny, nz);
+	_groundNormal = glm::normalize(normal);
+}
+
+void	Cell::updateWaterLevel()		{ _w += DELTA_TIME * _totalVelocity; }
 
 float	Cell::getWaterVertexHeight() {
 	if (_w > 0.001)
@@ -185,58 +226,17 @@ float	Cell::getWaterVertexHeight() {
 	return vertexHeight;
 }
 
-void	Cell::resetWater() {
-	_w = 0.0f;
-	_vN = 0.0f;
-	_vE = 0.0f;
-}
+float		Cell::getTotalLevel()			{ return _w + _g; }
+float		Cell::getWaterLevel()			{ return _w; }
+float		Cell::getGroundLevel()			{ return _g; }
 
-void	Cell::addWater(float intensity) {
-	_w += intensity;
-	if (_w < 0)
-		_w = 0;
-}
+float		Cell::getVelocityN()			{ return _vN; }
+float		Cell::getVelocityE()			{ return _vE; }
+float		Cell::getVelocityS()			{ return _vS ? *_vS : 0; }
+float		Cell::getVelocityW()			{ return _vW ? *_vW : 0; }
 
-void	Cell::addVelocity(float vN, float vE, float vS, float vW) {
-	_vN += vN;
-	_vE += vE;
-	if (_vS)
-		*_vS += vS;
-	if (_vW)
-		*_vW += vW;
-}
+glm::vec3	Cell::getNormal() const			{ return _normal; }
+glm::vec3	Cell::getGroundNormal() const	{ return _groundNormal; }
 
-void	Cell::updateWaterLevel() { _w += DELTA_TIME * _totalVelocity; }
-
-float	Cell::getTotalLevel() { return _w + _g; }
-float	Cell::getWaterLevel() { return _w; }
-float	Cell::getGroundLevel() { return _g; }
-
-void	Cell::setWaterLevel(float w){ _w = w; }
-void	Cell::setGroundLevel(float g){ _g = g; }
-
-float	Cell::getVelocityN() { return _vN; }
-float	Cell::getVelocityE() { return _vE; }
-float	Cell::getVelocityS() { return _vS ? *_vS : 0; }
-float	Cell::getVelocityW() { return _vW ? *_vW : 0; }
-
-glm::vec3	Cell::getNormal() const { return _normal; }
-glm::vec3	Cell::getGroundNormal() const { return _groundNormal; }
-
-void	Cell::updateNormal(void) {
-	float nx = ((_wW ? *_wW : _w) + (_gW ? *_gW : _g)) - ((_wE ? *_wE : _w) + (_gE ? *_gE : _g));
-	float ny = ((_wS ? *_wS : _w) + (_gS ? *_gS : _g)) - ((_wN ? *_wN : _w) + (_gN ? *_gN : _g));
-	float nz = 2.0f;
-
-	glm::vec3 normal(nx, ny, nz);
-	_normal = glm::normalize(normal);
-}
-
-void	Cell::updateGroundNormal(void) {
-	float nx = (_gW ? *_gW : _g) - (_gE ? *_gE : _g);
-	float ny = (_gS ? *_gS : _g) - (_gN ? *_gN : _g);
-	float nz = 2.0f;
-
-	glm::vec3 normal(nx, ny, nz);
-	_groundNormal = glm::normalize(normal);
-}
+void		Cell::setWaterLevel(float w)	{ _w = w; }
+void		Cell::setGroundLevel(float g)	{ _g = g; }
