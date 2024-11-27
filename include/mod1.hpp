@@ -6,9 +6,9 @@
 // _waveSpeed = std::min(WAVE_SPEED, static_cast<float>(0.5 * _cellSize / DELTA_TIME));
 
 # define CELL_SIZE		0.5f			//	in meter
-# define DELTA_TIME		1.0f / 60.0f		//	in sec
+# define DELTA_TIME		1.0f / 60.0f	//	in sec
 # define HALF_LIFE		2.0f			//	in sec
-# define WAVE_SPEED		8.0f				//	in meter/sec
+# define WAVE_SPEED		10.0f			//	in meter/sec
 
 # define PROPAGATION	(WAVE_SPEED * WAVE_SPEED) / (CELL_SIZE * CELL_SIZE)
 # define DAMPENING		pow(0.5f, DELTA_TIME / HALF_LIFE) // near 0 for more dampening
