@@ -24,10 +24,8 @@ void main() {
     // calculate light intensity
     float intensity = max(dot(normal, -lightDir), 0.2);
 
-
     // calculate transparency
     transparency = min(depth, 0.5);
-    //transparency = 0.5;
 
     fragColor = intensity * color;
 
