@@ -188,9 +188,9 @@ void	Simulation::waterControl() {
 	if (_rise_intensity)
 		_waterSurface->riseWater(_rise_intensity * 0.003f, 0.1f);
 	if (_rain_intensity)
-		_waterSurface->makeRain(_rain_intensity * 0.00005f, 50.0f);
+		_waterSurface->makeRain(_rain_intensity * 0.00005f, 1.5f);
 	if (_wave_intensity)
-		_waterSurface->makeWave(_wave_intensity * 0.45f);
+		_waterSurface->makeWave(_wave_intensity * 0.6f);
 	if (_input.flush_mode) {
 		_waterSurface->flush(1, 0, 1, 0);
 	}
