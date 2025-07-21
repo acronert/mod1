@@ -13,6 +13,8 @@ struct s_input {
 	bool	yawRight = false;
 	bool	pitchUp = false;
 	bool	pitchDown = false;
+	bool	plus = false;
+	bool	minus = false;
 
 	// simulation controls
 	bool	pause = false;

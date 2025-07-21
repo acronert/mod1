@@ -79,6 +79,10 @@ void	key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			input->yawLeft = true;
 		else if (key == GLFW_KEY_RIGHT)
 			input->yawRight = true;
+		else if (key == GLFW_KEY_EQUAL)
+			input->plus = true;
+		else if (key == GLFW_KEY_MINUS)
+			input->minus = true;
 
 		// Simulation controls
 		else if (key == GLFW_KEY_DELETE)
@@ -118,6 +122,11 @@ void	key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			input->yawLeft = false;
 		else if (key == GLFW_KEY_RIGHT)
 			input->yawRight = false;
+		else if (key == GLFW_KEY_EQUAL)
+			input->plus = false;
+		else if (key == GLFW_KEY_MINUS)
+			input->minus = false;
+
 
 		else if (key == GLFW_KEY_1)
 			input->rise_mode = false;
@@ -165,19 +174,39 @@ void	Simulation::initializeWaterSurface(std::vector<float> heightMap, int size) 
 }
 
 void	Simulation::waterControl() {
-
+	// Scroll Control
 	if (_input.rise_mode && _input.scroll) {
-		_rise_intensity = std::max(0, std::min(_rise_intensity + _input.scroll, 10));
+		_rise_intensity = std::max(0, std::min(_rise_intensity + _input.scroll, 20));
 		std::cout << "rise intensity = " << _rise_intensity << std::endl;
 	}
 	if (_input.rain_mode && _input.scroll) {
-		_rain_intensity = std::max(0, std::min(_rain_intensity + _input.scroll, 10));
+		_rain_intensity = std::max(0, std::min(_rain_intensity + _input.scroll, 20));
 		std::cout << "rain intensity = " << _rain_intensity << std::endl;
 	}
 	if (_input.wave_mode && _input.scroll) {
-		_wave_intensity = std::max(0, std::min(_wave_intensity + _input.scroll, 10));
+		_wave_intensity = std::max(0, std::min(_wave_intensity + _input.scroll, 20));
 		std::cout << "wave intensity = " << _wave_intensity << std::endl;
 	}
+
+	// Plus/Minus Control
+	if (_input.plus) {
+		if (_input.rise_mode)
+			_rise_intensity = std::max(0, std::min(_rise_intensity + 1, 20));
+		else if (_input.rain_mode)
+			_rain_intensity = std::max(0, std::min(_rain_intensity + 1, 20));
+		else if (_input.wave_mode)
+			_wave_intensity = std::max(0, std::min(_wave_intensity + 1, 20));
+	}
+	if (_input.minus) {
+		if (_input.rise_mode)
+			_rise_intensity = std::max(0, std::min(_rise_intensity - 1, 20));
+		else if (_input.rain_mode)
+			_rain_intensity = std::max(0, std::min(_rain_intensity - 1, 20));
+		else if (_input.wave_mode)
+			_wave_intensity = std::max(0, std::min(_wave_intensity - 1, 20));
+	}
+
+
 	if (_input.reset_water) {
 		_waterSurface->resetWater();
 		_rise_intensity = 0;
@@ -186,11 +215,11 @@ void	Simulation::waterControl() {
 		_input.reset_water = false;
 	}
 	if (_rise_intensity)
-		_waterSurface->riseWater(_rise_intensity * 0.003f, 0.1f);
+		_waterSurface->riseWater(_rise_intensity * 0.0015f, 0.1f);
 	if (_rain_intensity)
-		_waterSurface->makeRain(_rain_intensity * 0.00005f, 1.5f);
+		_waterSurface->makeRain(_rain_intensity * 0.000025f, 1.5f);
 	if (_wave_intensity)
-		_waterSurface->makeWave(_wave_intensity * 0.6f);
+		_waterSurface->makeWave(_wave_intensity * 0.3f);
 	if (_input.flush_mode) {
 		_waterSurface->flush(1, 0, 1, 0);
 	}
@@ -201,8 +230,11 @@ void	Simulation::displayControls() {
 					"\t WASD		-> camera movement\n" \
 					"\t ArrowKeys	-> camera angle\n" \
 					"\t 1 + scroll	-> change water rise intensity\n" \
+					"\t 1 + ['+' or '-']\n" \
 					"\t 2 + scroll	-> change rain intensity\n" \
+					"\t 2 + ['+' or '-']\n" \
 					"\t 3 + scroll	-> create wave\n" \
+					"\t 3 + ['+' or '-']\n" \
 					"\t 4			-> flush N and W side\n" \
 					"\t Spacebar	-> pause simulation\n" \
 					"\t Delete		-> reset simuation\n";
