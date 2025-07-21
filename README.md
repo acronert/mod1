@@ -39,4 +39,4 @@ Features include interactive **rain**, **wave propagation**, **rising water leve
 
 ```bash
 make
-./water_simulation path/to/heightmap.png
+./mod1 path/to/heightmap.png
